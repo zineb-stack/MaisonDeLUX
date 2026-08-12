@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MaisonLux Maroc — Créer un compte</title>
+<style>
+  :root{
+    --blue:#2A5DB0;
+    --blue-dark:#1B3F80;
+    --blue-light:#5C87D6;
+    --ink:#14161A;
+    --gray:#6B7280;
+    --gray-light:#9CA3AF;
+    --bg:#FFFFFF;
+    --bg-soft:#F5F7FB;
+    --line:rgba(20,22,26,0.09);
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ font-family:var(--font); color:var(--ink); background:var(--bg); line-height:1.5; }
+
+  header.nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 6vw;
+    border-bottom:1px solid var(--line);
+  }
+  .nav-logo{ display:flex; align-items:center; gap:10px; font-weight:800; font-size:16px; text-decoration:none; color:var(--ink); }
+  .nav-logo svg{ width:34px; height:34px; }
+  .nav-back{ font-size:14px; font-weight:600; color:var(--gray); text-decoration:none; }
+  .nav-back:hover{ color:var(--ink); }
+
+  .auth-wrap{
+    min-height:calc(100vh - 66px);
+    display:flex; align-items:center; justify-content:center;
+    padding:40px 20px;
+    position:relative; overflow:hidden;
+  }
+  .blob{ position:absolute; border-radius:50%; filter:blur(70px); opacity:0.28; z-index:0; }
+  .blob-1{ width:380px; height:380px; background:var(--blue); top:-140px; left:-100px; }
+  .blob-2{ width:320px; height:320px; background:#7BA8E8; bottom:-120px; right:-100px; opacity:0.24; }
+
+  .auth-card{
+    position:relative; z-index:1;
+    background:#fff; border:1px solid var(--line); border-radius:20px;
+    padding:40px; width:100%; max-width:420px;
+    box-shadow:0 20px 50px rgba(20,22,26,0.08);
+  }
+  .auth-card h1{ font-size:24px; font-weight:800; margin-bottom:6px; }
+  .auth-card .subtitle{ font-size:13.5px; color:var(--gray); margin-bottom:28px; }
+
+  .row-2{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .field{ margin-bottom:18px; display:flex; flex-direction:column; gap:6px; min-width:0; }
+  .field label{ font-size:12.5px; font-weight:700; color:var(--ink); }
+  .field input{
+    width:100%; min-width:0;
+    padding:12px 14px; border:1px solid var(--line); border-radius:10px;
+    background:var(--bg-soft); font-size:15px; color:var(--ink);
+    transition:border-color .15s ease, background .15s ease, box-shadow .15s ease;
+  }
+  .field input:focus{ outline:none; border-color:var(--blue); background:#fff; box-shadow:0 0 0 3px rgba(42,93,176,0.14); }
+  .field-hint{ font-size:11.5px; color:var(--gray-light); margin-top:2px; }
+
+  .role-group{ display:flex; gap:10px; margin-bottom:18px; }
+  .role-option{
+    flex:1; position:relative;
+  }
+  .role-option input{ position:absolute; opacity:0; inset:0; cursor:pointer; margin:0; }
+  .role-option label{
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    padding:14px 10px; border:1.5px solid var(--line); border-radius:12px;
+    background:var(--bg-soft); cursor:pointer; text-align:center;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .role-option input:checked + label{
+    border-color:var(--blue); background:rgba(42,93,176,0.06);
+  }
+  .role-option .role-title{ font-size:13.5px; font-weight:700; color:var(--ink); }
+  .role-option .role-sub{ font-size:11px; color:var(--gray); }
+
+  .terms{ display:flex; align-items:flex-start; gap:9px; margin-bottom:20px; }
+  .terms input{ margin-top:3px; }
+  .terms label{ font-size:12.5px; color:var(--gray); line-height:1.5; }
+  .terms a{ color:var(--blue); font-weight:600; text-decoration:none; }
+  .terms a:hover{ text-decoration:underline; }
+
+  .cta{
+    width:100%; padding:13px; background:var(--blue); color:#fff; border:none;
+    border-radius:10px; font-size:15px; font-weight:700; cursor:pointer; margin-top:4px;
+    box-shadow:0 8px 20px rgba(42,93,176,0.25);
+    transition:background .15s ease;
+  }
+  .cta:hover{ background:var(--blue-dark); }
+
+  .divider{ display:flex; align-items:center; text-align:center; color:var(--gray); font-size:12px; margin:22px 0; }
+  .divider::before, .divider::after{ content:""; flex:1; border-bottom:1px solid var(--line); }
+  .divider span{ padding:0 12px; }
+
+  .cta-outline{
+    width:100%; padding:12px; background:transparent; color:var(--ink);
+    border:1.5px solid var(--line); border-radius:10px; font-size:14.5px; font-weight:600; cursor:pointer;
+  }
+  .cta-outline:hover{ border-color:var(--ink); }
+
+  .hint{ text-align:center; font-size:13px; margin-top:22px; color:var(--gray); }
+  .hint a{ color:var(--blue); font-weight:700; text-decoration:none; }
+  .hint a:hover{ text-decoration:underline; }
+</style>
+</head>
+<body>
+
+  <header class="nav">
+    <a href="site.html" class="nav-logo">
+      <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+        <rect width="40" height="40" rx="9" fill="#F5F7FB"/>
+        <g stroke="#2A5DB0" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10 22L20 13L30 22"/>
+          <path d="M13 20V29"/>
+          <path d="M27 20V29"/>
+          <path d="M13 29H27"/>
+          <rect x="16" y="22" width="3.6" height="3.6"/>
+          <path d="M23 29V24.3H26.6V29"/>
+          <path d="M9 31H31"/>
+        </g>
+      </svg>
+      MaisonLux
+    </a>
+    <a href="login.html" class="nav-back">Déjà un compte ? Se connecter →</a>
+  </header>
+
+  <main class="auth-wrap">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <div class="auth-card">
+      <h1>Créer un compte</h1>
+      <p class="subtitle">Enregistrez vos estimations et suivez vos biens favoris.</p>
+
+      <form id="signupForm">
+        <div class="row-2">
+          <div class="field">
+            <label for="prenom">Prénom</label>
+            <input type="text" id="prenom" placeholder="Yasmine" required>
+          </div>
+          <div class="field">
+            <label for="nom">Nom</label>
+            <input type="text" id="nom" placeholder="El Amrani" required>
+          </div>
+        </div>
+
+        <label style="font-size:12.5px; font-weight:700; color:var(--ink); display:block; margin-bottom:8px;">Vous êtes</label>
+        <div class="role-group">
+          <div class="role-option">
+            <input type="radio" name="role" id="roleAcheteur" value="acheteur" checked>
+            <label for="roleAcheteur">
+              <span class="role-title">Acheteur</span>
+              <span class="role-sub">Je cherche un bien</span>
+            </label>
+          </div>
+          <div class="role-option">
+            <input type="radio" name="role" id="rolePromoteur" value="promoteur">
+            <label for="rolePromoteur">
+              <span class="role-title">Promoteur</span>
+              <span class="role-sub">Je vends / je construis</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="email">Adresse email</label>
+          <input type="email" id="email" placeholder="vous@exemple.com" required>
+        </div>
+
+        <div class="field">
+          <label for="phone">Téléphone</label>
+          <input type="tel" id="phone" placeholder="06 12 34 56 78">
+        </div>
+
+        <div class="field">
+          <label for="password">Mot de passe</label>
+          <input type="password" id="password" placeholder="••••••••" required minlength="8">
+          <span class="field-hint">8 caractères minimum</span>
+        </div>
+
+        <div class="field">
+          <label for="password2">Confirmer le mot de passe</label>
+          <input type="password" id="password2" placeholder="••••••••" required minlength="8">
+          <span class="field-hint" id="matchHint"></span>
+        </div>
+
+        <div class="terms">
+          <input type="checkbox" id="terms" required>
+          <label for="terms">J'accepte les <a href="#">conditions d'utilisation</a> et la <a href="#">politique de confidentialité</a>.</label>
+        </div>
+
+        <button type="submit" class="cta">Créer mon compte</button>
+      </form>
+
+      <div class="divider"><span>ou</span></div>
+      <button id="guestBtn" class="cta-outline">Continuer sans compte</button>
+
+      <p class="hint">Déjà inscrit ? <a href="login.html">Se connecter</a></p>
+    </div>
+  </main>
+
+<script>
+  document.getElementById('signupForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    const prenom = document.getElementById('prenom').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const password2 = document.getElementById('password2').value;
+    if(!prenom || !email || !password || !password2){ alert("Merci de remplir tous les champs obligatoires."); return; }
+    if(password.length < 8){ alert("Le mot de passe doit contenir au moins 8 caractères."); return; }
+    if(password !== password2){ alert("Les deux mots de passe ne correspondent pas."); return; }
+    alert("Compte créé avec succès... (à connecter avec un vrai backend)");
+    // window.location.href = "site.html";
+  });
+
+  const pw1 = document.getElementById('password');
+  const pw2 = document.getElementById('password2');
+  const matchHint = document.getElementById('matchHint');
+  function checkMatch(){
+    if(!pw2.value){ matchHint.textContent = ''; return; }
+    if(pw1.value === pw2.value){
+      matchHint.textContent = 'Les mots de passe correspondent';
+      matchHint.style.color = '#2E7D5B';
+    } else {
+      matchHint.textContent = 'Les mots de passe ne correspondent pas';
+      matchHint.style.color = '#C0392B';
+    }
+  }
+  pw1.addEventListener('input', checkMatch);
+  pw2.addEventListener('input', checkMatch);
+
+  document.getElementById('guestBtn').addEventListener('click', function(){
+    window.location.href = "site.html#estimation";
+  });
+</script>
+
+</body>
+</html>
