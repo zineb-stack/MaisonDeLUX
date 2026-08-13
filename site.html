@@ -28,8 +28,7 @@
     background:rgba(255,255,255,0.88);
     backdrop-filter:blur(10px);
     border-bottom:1px solid var(--line);
-  }
-  .nav-logo{ display:flex; align-items:center; gap:10px; font-weight:800; font-size:16px; }
+  }  .nav-logo{ display:flex; align-items:center; gap:10px; font-weight:800; font-size:16px; }
   .nav-logo svg{ width:34px; height:34px; }
   .nav-links{ display:flex; align-items:center; gap:30px; }
   .nav-links a{ font-size:14px; font-weight:600; color:var(--ink); text-decoration:none; opacity:0.72; transition:opacity .15s ease; }
@@ -40,7 +39,25 @@
     transition:background .15s ease;
   }
   .nav-cta:hover{ background:var(--blue-dark); }
-  @media(max-width:760px){ .nav-links{ display:none; } }
+  .menu-toggle{
+    display:none; background:none; border:1px solid var(--line); border-radius:8px;
+    width:38px; height:38px; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .menu-toggle span, .menu-toggle span::before, .menu-toggle span::after{
+    content:''; display:block; width:18px; height:2px; background:var(--ink); position:relative;
+  }
+  .menu-toggle span::before{ position:absolute; top:-6px; }
+  .menu-toggle span::after{ position:absolute; top:6px; }
+  @media(max-width:760px){
+    .nav-links{ display:none; }
+    .menu-toggle{ display:flex; }
+    .nav-links.mobile-open{
+      display:flex; flex-direction:column; align-items:stretch; gap:0;
+      position:absolute; top:100%; left:0; right:0; background:#fff;
+      border-bottom:1px solid var(--line); padding:8px 6vw 14px; z-index:99;
+    }
+    .nav-links.mobile-open a{ padding:12px 4px; border-bottom:1px solid var(--line); opacity:1; }
+  }
 
   .hero{
     position:relative; overflow:hidden; min-height:88vh;
@@ -48,7 +65,9 @@
     padding:0 6vw 110px; text-align:center;
   }
   .hero-bg{ position:absolute; inset:0; z-index:0; }
-  .hero-bg img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .hero-bg img{ width:100%; height:100%; object-fit:cover; object-position:center 15%; display:block; }
+  .hero-slide{ position:absolute; inset:0; opacity:0; transition:opacity 1.4s ease; }
+  .hero-slide.active{ opacity:1; }
   .hero-bg::after{
     content:""; position:absolute; inset:0;
     background:linear-gradient(180deg,
@@ -96,7 +115,15 @@
   .values-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:20px; }
   @media(max-width:900px){ .values-grid{ grid-template-columns:repeat(2,1fr); } }
   @media(max-width:520px){ .values-grid{ grid-template-columns:1fr; } }
-  .value-card{ background:var(--bg-soft); border:1px solid var(--line); border-radius:16px; padding:28px 22px; text-align:left; }
+  .value-card{ background:var(--bg-soft); border:1px solid var(--line); border-radius:16px; padding:28px 22px; text-align:left; cursor:pointer; transition:transform .25s ease, box-shadow .25s ease, border-color .2s ease; }
+  .value-card:hover{ transform:translateY(-4px); box-shadow:0 10px 24px rgba(20,22,26,0.08); border-color:var(--blue); }
+  .value-card.nudge{ animation:nudgeSlide .35s ease; }
+  @keyframes nudgeSlide{
+    0%{ transform:translateX(0); }
+    35%{ transform:translateX(-6px); }
+    70%{ transform:translateX(4px); }
+    100%{ transform:translateX(0); }
+  }
   .value-card .icon{
     width:40px; height:40px; border-radius:10px; background:var(--blue); color:#fff;
     display:flex; align-items:center; justify-content:center; font-weight:800; margin-bottom:16px;
@@ -106,13 +133,39 @@
 
   .photo-grid{ display:grid; grid-template-columns:1.3fr 1fr 1fr; gap:14px; }
   .photo-grid .p1{ grid-row:1 / 3; }
-  .photo-grid img{ width:100%; height:100%; object-fit:cover; border-radius:16px; display:block; aspect-ratio:1/1; }
+  .photo-grid img{ width:100%; height:100%; object-fit:cover; border-radius:16px; display:block; aspect-ratio:1/1; cursor:pointer; transition:transform .25s ease; }
+  .photo-grid img:hover{ transform:scale(1.02); }
   .photo-grid .p1 img{ aspect-ratio:1/2.05; }
   @media(max-width:800px){
     .photo-grid{ grid-template-columns:1fr 1fr; }
     .photo-grid .p1{ grid-column:1 / 3; grid-row:auto; }
     .photo-grid .p1 img{ aspect-ratio:16/9; }
   }
+
+  .lightbox{
+    position:fixed; inset:0; z-index:300; background:rgba(15,20,30,0.92);
+    display:none; align-items:center; justify-content:center; padding:30px;
+  }
+  .lightbox.show{ display:flex; }
+  .lightbox-frame{ position:relative; max-width:900px; width:100%; overflow:hidden; border-radius:16px; }
+  .lightbox-frame img{
+    width:100%; height:70vh; object-fit:cover; display:block; border-radius:16px;
+    transform:translateX(0); transition:transform .35s ease, opacity .35s ease; opacity:1;
+  }
+  .lightbox-frame img.slide-out-left{ transform:translateX(-40px); opacity:0; }
+  .lightbox-frame img.slide-out-right{ transform:translateX(40px); opacity:0; }
+  .lightbox-close{
+    position:absolute; top:-44px; right:0; background:none; border:none; color:#fff;
+    font-size:22px; cursor:pointer; width:36px; height:36px;
+  }
+  .lightbox-nav{
+    position:absolute; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.15);
+    border:none; color:#fff; width:42px; height:42px; border-radius:50%; font-size:20px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; transition:background .15s ease;
+  }
+  .lightbox-nav:hover{ background:rgba(255,255,255,0.28); }
+  .lightbox-prev{ left:14px; }
+  .lightbox-next{ right:14px; }
 
   .estimate-panel{ background:var(--bg-soft); border:1px solid var(--line); border-radius:20px; padding:36px; }
   form.estimate{ display:grid; grid-template-columns:1fr 1fr; gap:18px 20px; }
@@ -201,19 +254,27 @@
       </svg>
       MaisonLux
     </div>
-    <nav class="nav-links">
+    <nav class="nav-links" id="navLinks">
       <a href="#accueil">Accueil</a>
       <a href="#valeurs">Pourquoi nous</a>
       <a href="#photos">Ambiance</a>
       <a href="#estimation">Estimer un bien</a>
-      <a href="#graphes">Graphes</a>
+      <a href="dashboard.html">Graphes</a>
     </nav>
-    <a class="nav-cta" href="login.html" style="text-decoration:none; display:inline-block;">Se connecter</a>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <a class="nav-cta" href="login.html" style="text-decoration:none; display:inline-block;">Se connecter</a>
+      <button class="menu-toggle" id="menuToggle" aria-label="Menu"><span></span></button>
+    </div>
   </header>
 
   <section class="hero" id="accueil">
-    <div class="hero-bg">
-      <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1800&q=80" alt="Villa moderne de luxe sous un ciel bleu">
+    <div class="hero-bg" id="heroBg">
+      <img class="hero-slide active" src="https://images.unsplash.com/photo-1760727466828-1e7c5bfae28e?auto=format&fit=crop&w=1800&q=80" alt="Cactus et palmiers devant un bâtiment bleu, Jardin Majorelle">
+      <img class="hero-slide" src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1800&q=80" alt="villa ">
+      <img class="hero-slide" src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1800&q=80" alt="Villa blanche moderne avec piscine, ">
+      <img class="hero-slide" src="https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&q=1800&q=80" alt="Appartement">
+      <img class="hero-slide" src="https://images.unsplash.com/photo-1569383746724-6f1b882b8f46?auto=format&fit=crop&w=1800&q=80" alt="Vue panoramique de la ville bleue de Chefchaouen">
+
     </div>
     <div class="hero-content">
       <span class="eyebrow">Data Science · Immobilier Maroc</span>
@@ -221,7 +282,7 @@
       <p>MaisonLux Maroc analyse des milliers d'annonces pour vous donner une estimation de prix fiable, ville par ville, quartier par quartier.</p>
       <div class="hero-actions">
         <button class="btn-primary" onclick="document.getElementById('estimation').scrollIntoView()">Estimer mon bien</button>
-        <button class="btn-ghost" style="border-color:rgba(255,255,255,0.4); color:#fff;" onclick="document.getElementById('photos').scrollIntoView()">Découvrir</button>
+        <a class="btn-ghost" style="border-color:rgba(255,255,255,0.4); color:#fff; text-decoration:none; display:inline-block;" href="dashboard.html">Voir le dashboard</a>
       </div>
       <div class="hero-stats">
         <div><div class="num">2 400+</div><div class="lbl">Biens analysés</div></div>
@@ -267,14 +328,23 @@
       <h2>L'esprit du bleu Majorelle</h2>
       <p>Inspiré par l'architecture et les couleurs emblématiques du Maroc.</p>
     </div>
-    <div class="photo-grid">
-      <img class="p1" src="https://images.unsplash.com/photo-1747601387763-3abf57ee79c8?auto=format&fit=crop&w=900&q=80" alt="Bâtiment bleu Majorelle entouré de verdure">
-      <img src="https://images.unsplash.com/photo-1739686176648-2b53d1bbe87f?auto=format&fit=crop&w=700&q=80" alt="Maison bleue avec plantes en pot">
-      <img src="https://images.unsplash.com/photo-1569420691550-9b145b8ca456?auto=format&fit=crop&w=700&q=80" alt="Maison bleue et jaune, style marocain">
-      <img src="https://images.unsplash.com/photo-1760727466881-36a4b486dabd?auto=format&fit=crop&w=700&q=80" alt="Cour intérieure bleue avec cactus">
-      <img src="https://images.unsplash.com/photo-1758621709928-0c040ab88070?auto=format&fit=crop&w=700&q=80" alt="Bâtiment bleu vif entouré de cactus et palmiers">
+    <div class="photo-grid" id="photoGrid">
+      <img class="p1" data-i="0" src="https://images.unsplash.com/photo-1569383746724-6f1b882b8f46?auto=format&fit=crop&w=900&q=80" alt="Vue panoramique de la ville bleue de Chefchaouen">
+      <img data-i="1" src="https://images.unsplash.com/photo-1618270707842-748e8faafa3c?auto=format&fit=crop&w=700&q=80" alt="Dune de sable blanc rencontrant une eau bleue turquoise">
+      <img data-i="2" src="https://images.unsplash.com/photo-1730581822492-8a55ce0b7fde?auto=format&fit=crop&w=700&q=80" alt="Ruelle bleue avec orangers à Chefchaouen">
+      <img data-i="3" src="https://images.unsplash.com/photo-1573475631139-871e5a958d75?auto=format&fit=crop&w=700&q=80" alt="Barques bleues sur l'eau à Essaouira">
+      <img data-i="4" src="https://images.unsplash.com/photo-1699424495001-4996a2fe67f6?auto=format&fit=crop&w=700&q=80" alt="Escalier bleu décoré à Chefchaouen">
     </div>
   </section>
+
+  <div class="lightbox" id="lightbox">
+    <div class="lightbox-frame">
+      <button class="lightbox-close" id="lightboxClose">✕</button>
+      <img id="lightboxImg" src="" alt="">
+      <button class="lightbox-nav lightbox-prev" id="lightboxPrev">‹</button>
+      <button class="lightbox-nav lightbox-next" id="lightboxNext">›</button>
+    </div>
+  </div>
 
   <section id="estimation">
     <div class="section-head">
@@ -343,129 +413,9 @@
         </div>
       </div>
     </div>
-    <p class="note">Estimation simplifiée à des fins de démonstration front-end, basée sur des prix/m² moyens par ville. Une mise en production réelle appellerait le modèle Random Forest entraîné via une API.</p>
+    <p class="note">Cette estimation utilise le vrai modèle Random Forest (R² = 0.64) via le backend local (<code>http://localhost:5000</code>). Si le serveur n'est pas lancé, une formule simplifiée est utilisée à la place.</p>
   </section>
 
-  <section id="graphes">
-    <div class="section-head">
-      <p class="section-eyebrow">Données du marché</p>
-      <h2>Le marché en chiffres</h2>
-      <p>Tendances observées sur les annonces analysées, ville par ville et quartier par quartier.</p>
-    </div>
-
-    <div class="grid-2">
-      <div class="panel">
-        <h3>Prix moyen au m² par ville</h3>
-        <div class="bar-row">
-          <div class="bar-label"><span class="name">Marrakech</span><span class="val">16 500 DH</span></div>
-          <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
-        </div>
-        <div class="bar-row">
-          <div class="bar-label"><span class="name">Casablanca</span><span class="val">15 500 DH</span></div>
-          <div class="bar-track"><div class="bar-fill" style="width:94%"></div></div>
-        </div>
-        <div class="bar-row">
-          <div class="bar-label"><span class="name">Rabat</span><span class="val">14 500 DH</span></div>
-          <div class="bar-track"><div class="bar-fill" style="width:88%"></div></div>
-        </div>
-        <div class="bar-row">
-          <div class="bar-label"><span class="name">Tanger</span><span class="val">13 500 DH</span></div>
-          <div class="bar-track"><div class="bar-fill" style="width:82%"></div></div>
-        </div>
-        <div class="bar-row">
-          <div class="bar-label"><span class="name">Salé</span><span class="val">10 000 DH</span></div>
-          <div class="bar-track"><div class="bar-fill light" style="width:61%"></div></div>
-        </div>
-        <div class="bar-row">
-          <div class="bar-label"><span class="name">Martil</span><span class="val">10 500 DH</span></div>
-          <div class="bar-track"><div class="bar-fill light" style="width:64%"></div></div>
-        </div>
-        <div class="bar-row">
-          <div class="bar-label"><span class="name">Fès</span><span class="val">9 500 DH</span></div>
-          <div class="bar-track"><div class="bar-fill light" style="width:58%"></div></div>
-        </div>
-        <div class="bar-row">
-          <div class="bar-label"><span class="name">Meknès</span><span class="val">8 500 DH</span></div>
-          <div class="bar-track"><div class="bar-fill light" style="width:52%"></div></div>
-        </div>
-      </div>
-
-      <div class="panel">
-        <h3>Quartiers les plus actifs (nombre d'annonces)</h3>
-        <div class="bar-row">
-          <div class="bar-label"><span class="name">Guéliz</span><span class="val">100</span></div>
-          <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
-        </div>
-        <div class="bar-row">
-          <div class="bar-label"><span class="name">Maârif</span><span class="val">84</span></div>
-          <div class="bar-track"><div class="bar-fill" style="width:84%"></div></div>
-        </div>
-        <div class="bar-row">
-          <div class="bar-label"><span class="name">Californie</span><span class="val">73</span></div>
-          <div class="bar-track"><div class="bar-fill" style="width:73%"></div></div>
-        </div>
-        <div class="bar-row">
-          <div class="bar-label"><span class="name">Belvédère</span><span class="val">61</span></div>
-          <div class="bar-track"><div class="bar-fill" style="width:61%"></div></div>
-        </div>
-        <div class="bar-row">
-          <div class="bar-label"><span class="name">Sidi Maarouf</span><span class="val">55</span></div>
-          <div class="bar-track"><div class="bar-fill light" style="width:55%"></div></div>
-        </div>
-        <div class="bar-row">
-          <div class="bar-label"><span class="name">Agdal</span><span class="val">47</span></div>
-          <div class="bar-track"><div class="bar-fill light" style="width:47%"></div></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="grid-2">
-      <div class="panel">
-        <h3>Répartition par type de bien</h3>
-        <div class="donut-legend">
-          <div class="donut-row"><span class="donut-dot" style="background:var(--blue)"></span><span class="name">Appartement</span><span class="val">62%</span></div>
-          <div class="bar-track"><div class="bar-fill" style="width:62%"></div></div>
-        </div>
-        <div class="donut-legend" style="margin-top:14px;">
-          <div class="donut-row"><span class="donut-dot" style="background:var(--blue-light)"></span><span class="name">Villa</span><span class="val">18%</span></div>
-          <div class="bar-track"><div class="bar-fill light" style="width:18%"></div></div>
-        </div>
-        <div class="donut-legend" style="margin-top:14px;">
-          <div class="donut-row"><span class="donut-dot" style="background:#9CB6DE"></span><span class="name">Duplex</span><span class="val">13%</span></div>
-          <div class="bar-track"><div class="bar-fill" style="width:13%; background:#9CB6DE;"></div></div>
-        </div>
-        <div class="donut-legend" style="margin-top:14px;">
-          <div class="donut-row"><span class="donut-dot" style="background:#C7D5EE"></span><span class="name">Studio</span><span class="val">7%</span></div>
-          <div class="bar-track"><div class="bar-fill" style="width:7%; background:#C7D5EE;"></div></div>
-        </div>
-      </div>
-
-      <div class="panel">
-        <h3>Prix moyen selon le nombre de pièces</h3>
-        <div class="bar-row">
-          <div class="bar-label"><span class="name">1 pièce</span><span class="val">720 000 DH</span></div>
-          <div class="bar-track"><div class="bar-fill light" style="width:36%"></div></div>
-        </div>
-        <div class="bar-row">
-          <div class="bar-label"><span class="name">2 pièces</span><span class="val">980 000 DH</span></div>
-          <div class="bar-track"><div class="bar-fill light" style="width:49%"></div></div>
-        </div>
-        <div class="bar-row">
-          <div class="bar-label"><span class="name">3 pièces</span><span class="val">1 350 000 DH</span></div>
-          <div class="bar-track"><div class="bar-fill" style="width:68%"></div></div>
-        </div>
-        <div class="bar-row">
-          <div class="bar-label"><span class="name">4 pièces</span><span class="val">1 780 000 DH</span></div>
-          <div class="bar-track"><div class="bar-fill" style="width:89%"></div></div>
-        </div>
-        <div class="bar-row">
-          <div class="bar-label"><span class="name">5+ pièces</span><span class="val">2 000 000 DH</span></div>
-          <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
-        </div>
-        <p class="note">Le prix moyen augmente avec le nombre de pièces, de façon globalement linéaire.</p>
-      </div>
-    </div>
-  </section>
 
   <footer>MaisonLux Maroc — projet pédagogique de Data Science · Source des données : mubawab.ma</footer>
 
@@ -475,8 +425,30 @@
     'Fès':9500,'Meknes':8500,'Martil':10500,'Salé':10000
   };
   const typeMultiplier = { 'appartement':1.0,'duplex':1.12,'villa':1.35,'studio':0.95 };
+  const API_URL = 'http://localhost:5000/api/predict';
 
-  document.getElementById('estimForm').addEventListener('submit', function(e){
+  function fallbackEstimate(ville, type, surface, pieces, chambres, sdb){
+    let ppm2 = basePricePerM2[ville] * typeMultiplier[type];
+    let prix = ppm2 * surface;
+    prix *= 1 + (sdb - 1) * 0.05;
+    prix *= 1 + (pieces - 3) * 0.02;
+    prix *= 1 + (chambres - 2) * 0.015;
+    prix = Math.max(prix, 0);
+    const marge = prix * 0.15;
+    return { prix_estime: prix, fourchette_basse: prix - marge, fourchette_haute: prix + marge, prix_m2: prix / surface, source: 'formule (backend indisponible)' };
+  }
+
+  function displayResult(r, ville, quartier){
+    const fmt = n => Math.round(n).toLocaleString('fr-FR') + ' DH';
+    document.getElementById('rPrice').textContent = fmt(r.prix_estime);
+    document.getElementById('rRange').textContent = 'Fourchette indicative : ' + fmt(r.fourchette_basse) + ' — ' + fmt(r.fourchette_haute);
+    document.getElementById('rPpm').textContent = Math.round(r.prix_m2).toLocaleString('fr-FR') + ' DH/m²';
+    document.getElementById('rVille').textContent = ville;
+    document.getElementById('rQuartier').textContent = quartier;
+    document.getElementById('result').classList.add('show');
+  }
+
+  document.getElementById('estimForm').addEventListener('submit', async function(e){
     e.preventDefault();
     const ville = document.getElementById('ville').value;
     const type = document.getElementById('type').value;
@@ -486,23 +458,107 @@
     const chambres = parseFloat(document.getElementById('chambres').value) || 0;
     const sdb = parseFloat(document.getElementById('sdb').value) || 0;
 
-    let ppm2 = basePricePerM2[ville] * typeMultiplier[type];
-    let prix = ppm2 * surface;
-    prix *= 1 + (sdb - 1) * 0.05;
-    prix *= 1 + (pieces - 3) * 0.02;
-    prix *= 1 + (chambres - 2) * 0.015;
-    prix = Math.max(prix, 0);
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalLabel = submitBtn.textContent;
+    submitBtn.textContent = 'Calcul en cours...';
+    submitBtn.disabled = true;
 
-    const marge = prix * 0.15;
-    const fmt = n => Math.round(n).toLocaleString('fr-FR') + ' DH';
-
-    document.getElementById('rPrice').textContent = fmt(prix);
-    document.getElementById('rRange').textContent = 'Fourchette indicative : ' + fmt(prix-marge) + ' — ' + fmt(prix+marge);
-    document.getElementById('rPpm').textContent = Math.round(prix/surface).toLocaleString('fr-FR') + ' DH/m²';
-    document.getElementById('rVille').textContent = ville;
-    document.getElementById('rQuartier').textContent = quartier;
-    document.getElementById('result').classList.add('show');
+    try{
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ville, quartier, type_bien: type, surface, pieces, chambres, salles_bain: sdb })
+      });
+      if(!res.ok) throw new Error('Erreur backend');
+      const data = await res.json();
+      displayResult({
+        prix_estime: data.prix_estime,
+        fourchette_basse: data.prix_min,
+        fourchette_haute: data.prix_max,
+        prix_m2: data.prix_par_m2
+      }, ville, quartier);
+    } catch(err){
+      const fb = fallbackEstimate(ville, type, surface, pieces, chambres, sdb);
+      displayResult(fb, ville, quartier);
+    } finally {
+      submitBtn.textContent = originalLabel;
+      submitBtn.disabled = false;
+    }
   });
+  const menuToggle = document.getElementById('menuToggle');
+  const navLinks = document.getElementById('navLinks');
+  menuToggle.addEventListener('click', function(){
+    navLinks.classList.toggle('mobile-open');
+  });
+  navLinks.querySelectorAll('a').forEach(a=>{
+    a.addEventListener('click', ()=> navLinks.classList.remove('mobile-open'));
+  });
+  // --- Lightbox photos avec glissement ---
+  const photoImgs = Array.from(document.querySelectorAll('#photoGrid img'));
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightboxImg');
+  let currentPhoto = 0;
+
+  function openLightbox(i){
+    currentPhoto = i;
+    lightboxImg.src = photoImgs[i].src;
+    lightboxImg.alt = photoImgs[i].alt;
+    lightbox.classList.add('show');
+  }
+
+  function slideTo(newIndex, direction){
+    lightboxImg.classList.add(direction === 'next' ? 'slide-out-left' : 'slide-out-right');
+    setTimeout(function(){
+      currentPhoto = (newIndex + photoImgs.length) % photoImgs.length;
+      lightboxImg.src = photoImgs[currentPhoto].src;
+      lightboxImg.alt = photoImgs[currentPhoto].alt;
+      lightboxImg.classList.remove('slide-out-left', 'slide-out-right');
+      lightboxImg.style.transform = direction === 'next' ? 'translateX(40px)' : 'translateX(-40px)';
+      lightboxImg.offsetHeight;
+      lightboxImg.style.transform = 'translateX(0)';
+    }, 180);
+  }
+
+  photoImgs.forEach(function(img, i){
+    img.addEventListener('click', function(){ openLightbox(i); });
+  });
+
+  document.getElementById('lightboxClose').addEventListener('click', function(){
+    lightbox.classList.remove('show');
+  });
+  lightbox.addEventListener('click', function(e){
+    if(e.target === lightbox) lightbox.classList.remove('show');
+  });
+  document.getElementById('lightboxNext').addEventListener('click', function(){
+    slideTo(currentPhoto + 1, 'next');
+  });
+  document.getElementById('lightboxPrev').addEventListener('click', function(){
+    slideTo(currentPhoto - 1, 'prev');
+  });
+  document.addEventListener('keydown', function(e){
+    if(!lightbox.classList.contains('show')) return;
+    if(e.key === 'Escape') lightbox.classList.remove('show');
+    if(e.key === 'ArrowRight') slideTo(currentPhoto + 1, 'next');
+    if(e.key === 'ArrowLeft') slideTo(currentPhoto - 1, 'prev');
+  });
+  // --- Glissement léger sur les cartes "Quatre principes" ---
+  document.querySelectorAll('.value-card').forEach(function(card){
+    card.addEventListener('click', function(){
+      card.classList.remove('nudge');
+      void card.offsetWidth;
+      card.classList.add('nudge');
+    });
+  });
+  // --- Slideshow hero (crossfade automatique) ---
+  const heroSlides = document.querySelectorAll('#heroBg .hero-slide');
+  let heroIndex = 0;
+  if(heroSlides.length > 1){
+    setInterval(function(){
+      heroSlides[heroIndex].classList.remove('active');
+      heroIndex = (heroIndex + 1) % heroSlides.length;
+      heroSlides[heroIndex].classList.add('active');
+    }, 5000);
+  }
 </script>
 
 </body>
