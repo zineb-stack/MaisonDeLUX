@@ -3,6 +3,10 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import time
 import random
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+DATA_FILE = PROJECT_ROOT / "data" / "raw" / "maisonlux_maroc_complet.csv"
 
 data_list = []
 page = 1
@@ -90,7 +94,7 @@ while True:
 if data_list:
     print(f"\nJari isha2 l-fichier CSV... (Total d l-annonces f l-Moghrib: {total_annonces})")
     df = pd.DataFrame(data_list)
-    nom_fichier = "maisonlux_maroc_complet.csv"
+    nom_fichier = DATA_FILE
     df.to_csv(nom_fichier, index=False, encoding='utf-8-sig') 
     print(f"=> NADI! L-fichier '{nom_fichier}' wajed w fih l-data mkmoula!")
 else:
