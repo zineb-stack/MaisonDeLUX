@@ -139,13 +139,38 @@
   </main>
 
 <script>
-  document.getElementById('loginForm').addEventListener('submit', function(e){
+  const API_URL = 'http://localhost:5000/api/login/';
+
+  document.getElementById('loginForm').addEventListener('submit', async function(e){
     e.preventDefault();
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
     if(!email || !password){ alert("Merci de remplir tous les champs."); return; }
-    alert("Connexion en cours... (à connecter avec un vrai backend)");
-    // window.location.href = "site.html";
+
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalLabel = submitBtn.textContent;
+    submitBtn.textContent = 'Connexion...';
+    submitBtn.disabled = true;
+
+    try{
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if(!res.ok){
+        alert(data.error || "Erreur de connexion.");
+        return;
+      }
+      localStorage.setItem('maisonlux_user', JSON.stringify(data));
+      window.location.href = "site.html";
+    } catch(err){
+      alert("Impossible de contacter le serveur. Vérifiez que le backend (python app.py) est bien lancé.");
+    } finally {
+      submitBtn.textContent = originalLabel;
+      submitBtn.disabled = false;
+    }
   });
 
   document.getElementById('guestBtn').addEventListener('click', function(){

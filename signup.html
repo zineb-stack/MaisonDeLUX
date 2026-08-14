@@ -204,17 +204,46 @@
   </main>
 
 <script>
-  document.getElementById('signupForm').addEventListener('submit', function(e){
+  const API_URL = 'http://localhost:5000/api/signup/';
+
+  document.getElementById('signupForm').addEventListener('submit', async function(e){
     e.preventDefault();
     const prenom = document.getElementById('prenom').value.trim();
+    const nom = document.getElementById('nom').value.trim();
     const email = document.getElementById('email').value.trim();
+    const telephone = document.getElementById('phone').value.trim();
     const password = document.getElementById('password').value;
     const password2 = document.getElementById('password2').value;
-    if(!prenom || !email || !password || !password2){ alert("Merci de remplir tous les champs obligatoires."); return; }
+    const role = document.querySelector('input[name="role"]:checked').value;
+
+    if(!prenom || !nom || !email || !password || !password2){ alert("Merci de remplir tous les champs obligatoires."); return; }
     if(password.length < 8){ alert("Le mot de passe doit contenir au moins 8 caractères."); return; }
     if(password !== password2){ alert("Les deux mots de passe ne correspondent pas."); return; }
-    alert("Compte créé avec succès... (à connecter avec un vrai backend)");
-    // window.location.href = "site.html";
+
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalLabel = submitBtn.textContent;
+    submitBtn.textContent = 'Création...';
+    submitBtn.disabled = true;
+
+    try{
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prenom, nom, email, telephone, password, role })
+      });
+      const data = await res.json();
+      if(!res.ok){
+        alert(data.error || "Erreur lors de la création du compte.");
+        return;
+      }
+      localStorage.setItem('maisonlux_user', JSON.stringify(data));
+      window.location.href = "site.html";
+    } catch(err){
+      alert("Impossible de contacter le serveur. Vérifiez que le backend (python app.py) est bien lancé.");
+    } finally {
+      submitBtn.textContent = originalLabel;
+      submitBtn.disabled = false;
+    }
   });
 
   const pw1 = document.getElementById('password');
