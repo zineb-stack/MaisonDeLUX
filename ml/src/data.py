@@ -1,101 +1,154 @@
-import requests
-from bs4 import BeautifulSoup
-import pandas as pd
-import time
+"""Safe, resumable Mubawab card collector for MaisonDeLUX Schema V2.
+
+The Phase 5A default is deliberately bounded to 20 new records and writes to a
+new V2 file. It never overwrites the historical training CSV.
+"""
+from __future__ import annotations
+
+import argparse
+import csv
+import logging
 import random
+import time
 from pathlib import Path
+from typing import Iterable
+from urllib.parse import urljoin
+
+import requests
+from bs4 import BeautifulSoup, Tag
+
+try:  # Works both as ``python ml/src/data.py`` and as an imported project module.
+    from .data_schema import SCHEMA_V2_COLUMNS, build_v2_record
+except ImportError:
+    from data_schema import SCHEMA_V2_COLUMNS, build_v2_record
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DATA_FILE = PROJECT_ROOT / "data" / "raw" / "maisonlux_maroc_complet.csv"
+DEFAULT_OUTPUT = PROJECT_ROOT / "data" / "raw" / "maisonlux_listings_v2.csv"
+BASE_URL = "https://www.mubawab.ma/fr/sc/appartements-a-vendre"
+SOURCE = "mubawab.ma"
+LOGGER = logging.getLogger("maisonlux.collection")
 
-data_list = []
-page = 1
-total_annonces = 0
 
-print("Bismillah... L-code bda. Db wkha tqte3 l-connexion, maghadich ystselem 7ta yjme3 kolchi!")
+def page_url(page: int) -> str:
+    return BASE_URL if page == 1 else f"{BASE_URL}:p:{page}"
 
-while True:
-    print(f"-> Jari istikhraj l-data mn l-page {page}...")
-    
-    if page == 1:
-        url = "https://www.mubawab.ma/fr/sc/appartements-a-vendre"
-    else:
-        url = f"https://www.mubawab.ma/fr/sc/appartements-a-vendre:p:{page}"
-        
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    }
-    
-    # ---------------------------------------------------------
-    # SYSTEME DYAL RETRY: Ghadi ybqa y7awel 5 d l-mrat f nfs l-page ila kan mouchkil
-    # ---------------------------------------------------------
-    page_mzyana = False
-    mo7awalat = 0
-    max_mo7awalat = 5
-    
-    while not page_mzyana and mo7awalat < max_mo7awalat:
+
+def fetch_html(session: requests.Session, url: str, timeout: float = 20,
+               max_attempts: int = 3, retry_delay: float = 5) -> str | None:
+    """Fetch one public page conservatively; do not bypass access controls."""
+    for attempt in range(1, max_attempts + 1):
         try:
-            response = requests.get(url, headers=headers, timeout=20) # Zedt l-waqt l 20 taniya
-            
+            response = session.get(url, timeout=timeout)
             if response.status_code == 200:
-                page_mzyana = True # L-page t7ellat mzyan, nkhurjou mn l-mo7awalat
-            else:
-                mo7awalat += 1
-                print(f"  [!] L-sit 3tana erreur {response.status_code}. Ntsnaw 5 tawanio w n3awdo... ({mo7awalat}/{max_mo7awalat})")
-                time.sleep(5)
-                
-        except requests.exceptions.RequestException as e:
-            mo7awalat += 1
-            print(f"  [!] Connexion t9ilat aw tqet3at f l-page {page}. Ntsnaw 10 tawanio w n3awdo... ({mo7awalat}/{max_mo7awalat})")
-            time.sleep(10) # Kan-tsnaw l-internet trje3
-            
-    # Ila drna 5 d l-mo7awalat w walo, y3ni l-sit sala aw t7besna b sifa niha2iya
-    if not page_mzyana:
-        print(f"\n!! Wqefna f l-page {page} b3d 5 d l-mo7awalat. L-scraping ghadi ykml db l-fichier.")
-        break
-    # ---------------------------------------------------------
-        
-    soup = BeautifulSoup(response.text, 'html.parser')
-    annonces = soup.find_all('div', class_='listingBox')
-    
-    if len(annonces) == 0:
-        print("\n*** Salaw l-pages! Jme3na l-data d l-Moghrib KAMLA. ***")
-        break
-        
-    for annonce in annonces:
-        try:
-            titre_element = annonce.find('h2', class_='listingTit')
-            prix_element = annonce.find('span', class_='priceTag')
-            loc_element = annonce.find('i', class_='icon-location')
-            
-            titre = titre_element.text.strip() if titre_element else None
-            prix = prix_element.text.strip() if prix_element else None
-            localisation = loc_element.parent.text.strip().replace('\n', ' ').replace('\t', '') if loc_element else None
-            
-            details_element = annonce.find('div', class_='adDetails')
-            details = " ".join(details_element.text.split()) if details_element else None
-            
-            if titre and prix:
-                data_list.append({
-                    'Titre': titre,
-                    'Prix': prix,
-                    'Localisation': localisation,
-                    'Details': details
-                })
-                total_annonces += 1
-                
-        except Exception as e:
-            continue
-            
-    time.sleep(random.uniform(1.5, 3.5))
-    page += 1
+                return response.text
+            if response.status_code in {401, 403, 429}:
+                LOGGER.error("Access/rate-limit response %s for %s; stopping retries", response.status_code, url)
+                return None
+            LOGGER.warning("HTTP %s for %s (attempt %s/%s)", response.status_code, url, attempt, max_attempts)
+        except requests.RequestException as error:
+            LOGGER.warning("Request failed for %s (attempt %s/%s): %s", url, attempt, max_attempts, error)
+        if attempt < max_attempts:
+            time.sleep(retry_delay)
+    return None
 
-# Mli ytsalaw ga3 l-pages mzyan, 3ad n-creeyiou l-fichier l-kamel
-if data_list:
-    print(f"\nJari isha2 l-fichier CSV... (Total d l-annonces f l-Moghrib: {total_annonces})")
-    df = pd.DataFrame(data_list)
-    nom_fichier = DATA_FILE
-    df.to_csv(nom_fichier, index=False, encoding='utf-8-sig') 
-    print(f"=> NADI! L-fichier '{nom_fichier}' wajed w fih l-data mkmoula!")
-else:
-    print("Mouchkil: ma tjem3at 7ta data.")
+
+def _text(element: Tag | None) -> str | None:
+    return " ".join(element.get_text(" ", strip=True).split()) if element else None
+
+
+def parse_listing_card(card: Tag, scraped_at: str | None = None) -> dict:
+    """Extract evidence present on a result card; unavailable fields stay null."""
+    title_element = card.select_one("h2.listingTit")
+    link = title_element.find("a", href=True) if title_element else card.find("a", href=True)
+    location_icon = card.select_one("i.icon-location")
+    return {
+        "native_id": card.get("data-id") or card.get("data-listing-id"),
+        "url": urljoin(BASE_URL, link.get("href")) if link else None,
+        "scraped_at": scraped_at,
+        "source_category": "appartements à vendre",
+        "title_raw": _text(title_element),
+        "raw_price_text": _text(card.select_one("span.priceTag")),
+        "location_raw": _text(location_icon.parent if location_icon else None),
+        "details_raw": _text(card.select_one("div.adDetails")),
+    }
+
+
+def parse_result_page(html: str, scraped_at: str | None = None) -> list[dict]:
+    records = []
+    for position, card in enumerate(BeautifulSoup(html, "html.parser").select("div.listingBox"), start=1):
+        try:
+            raw = parse_listing_card(card, scraped_at)
+            if not raw.get("title_raw"):
+                LOGGER.warning("Skipping card %s: title missing", position)
+                continue
+            records.append(build_v2_record(raw, source=SOURCE))
+        except (AttributeError, TypeError, ValueError) as error:
+            LOGGER.exception("Card %s could not be parsed: %s", position, error)
+    return records
+
+
+def load_known_ids(path: Path) -> set[str]:
+    if not path.exists():
+        return set()
+    with path.open("r", encoding="utf-8-sig", newline="") as handle:
+        return {row["listing_id"] for row in csv.DictReader(handle) if row.get("listing_id")}
+
+
+def append_records(path: Path, records: Iterable[dict], known_ids: set[str] | None = None) -> int:
+    """Append only new stable IDs in fixed column order; each call is a checkpoint."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    known = known_ids if known_ids is not None else load_known_ids(path)
+    new_records = [record for record in records if record.get("listing_id") not in known]
+    if not new_records:
+        return 0
+    write_header = not path.exists() or path.stat().st_size == 0
+    with path.open("a", encoding="utf-8-sig", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=SCHEMA_V2_COLUMNS, extrasaction="ignore")
+        if write_header:
+            writer.writeheader()
+        for record in new_records:
+            writer.writerow({column: record.get(column) for column in SCHEMA_V2_COLUMNS})
+            known.add(record["listing_id"])
+        handle.flush()
+    return len(new_records)
+
+
+def collect(output: Path = DEFAULT_OUTPUT, max_pages: int = 1, max_listings: int = 20,
+            min_delay: float = 2.0, max_delay: float = 4.0) -> int:
+    """Collect a bounded number of public result-card records with checkpoints."""
+    session = requests.Session()
+    session.headers.update({"User-Agent": "MaisonDeLUX-PFE/1.0 educational-data-audit",
+                            "Accept-Language": "fr-MA,fr;q=0.9"})
+    known, collected = load_known_ids(output), 0
+    for page in range(1, max_pages + 1):
+        url = page_url(page)
+        LOGGER.info("Fetching result page %s: %s", page, url)
+        html = fetch_html(session, url)
+        if html is None:
+            LOGGER.error("Stopping collection after failed page %s", page); break
+        records = parse_result_page(html)
+        if not records:
+            LOGGER.info("No listing cards found on page %s; stopping", page); break
+        written = append_records(output, records[:max_listings - collected], known)
+        collected += written
+        LOGGER.info("Checkpoint: %s new records (%s total this run)", written, collected)
+        if collected >= max_listings:
+            break
+        time.sleep(random.uniform(min_delay, max_delay))
+    return collected
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Collect bounded Mubawab cards into Schema V2")
+    parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--max-pages", type=int, default=1)
+    parser.add_argument("--max-listings", type=int, default=20)
+    args = parser.parse_args()
+    if args.max_pages < 1 or args.max_listings < 1:
+        parser.error("--max-pages and --max-listings must be positive")
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    LOGGER.info("Collection finished: %s new records", collect(args.output, args.max_pages, args.max_listings))
+
+
+if __name__ == "__main__":
+    main()
