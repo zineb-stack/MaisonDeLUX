@@ -1,6 +1,6 @@
 # MaisonDeLUX
 
-Application web d'estimation immobilière au Maroc, avec un frontend HTML et une API Flask utilisant les artefacts du modèle existant.
+Application web d'estimation immobilière au Maroc, avec un frontend HTML et une API Flask utilisant une pipeline de régression scikit-learn.
 
 ## Installation
 
@@ -59,9 +59,9 @@ Exemple de réponse :
 
 - `backend/` : API Flask.
 - `frontend/` : pages HTML et répertoires d'assets.
-- `ml/notebooks/` : notebooks existants.
+- `ml/notebooks/` : notebooks historiques et notebook final reproductible.
 - `ml/src/` : scripts liés à la collecte et au traitement des données.
-- `ml/artifacts/` : modèle, scaler, colonnes, tables d'encodage et métriques existants.
+- `ml/artifacts/` : pipeline de production, métadonnées, métriques et artefacts historiques.
 - `data/raw/` : données sources.
 - `data/processed/` : emplacement réservé aux données transformées.
 - `tests/` : emplacement réservé aux tests.
@@ -69,12 +69,14 @@ Exemple de réponse :
 
 Les artefacts utilisés directement par l'API sont :
 
-- `ml/artifacts/model.pkl` : modèle Random Forest entraîné.
-- `ml/artifacts/scaler.pkl` : scaler des colonnes numériques.
-- `ml/artifacts/quartier_freq.pkl` : fréquences des quartiers.
-- `ml/artifacts/feature_columns.pkl` : ordre des colonnes attendu par le modèle.
-- `ml/artifacts/mode_par_ville.pkl` : quartier le plus fréquent par ville.
-- `ml/artifacts/metrics.json` : métriques enregistrées des modèles.
+- `ml/artifacts/pipeline.pkl` : pipeline finale de prétraitement et de régression.
+- `ml/artifacts/model_metadata.json` : contrat d'entrée, version et empreinte de l'artefact.
+- `ml/artifacts/metrics.json` : métriques de référence, protocole d'évaluation et audit des données.
+
+Les anciens fichiers `model.pkl`, `scaler.pkl`, `feature_columns.pkl`,
+`quartier_freq.pkl` et `mode_par_ville.pkl` sont conservés pour la traçabilité.
+Le travail ML reproductible se trouve dans `ml/notebooks/model_final.ipynb` et son
+audit est résumé dans `docs/ML_AUDIT.md`.
 
 Le script de collecte peut être lancé depuis la racine avec :
 

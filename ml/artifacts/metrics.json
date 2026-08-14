@@ -1,25 +1,121 @@
 {
-  "linear_regression": {
-    "rmse": 785206.8692694696,
-    "mae": 460558.0942330997,
-    "r2": 0.4240015513338956
+  "model_version": "phase4_final_v1",
+  "problem_type": "regression",
+  "historical_reported": {
+    "linear_regression": {
+      "rmse": 785206.8692694696,
+      "mae": 460558.0942330997,
+      "r2": 0.4240015513338956
+    },
+    "decision_tree": {
+      "rmse": 819273.4324855068,
+      "mae": 474375.6158892377,
+      "r2": 0.37293743215842345
+    },
+    "random_forest": {
+      "rmse": 781896.6595134907,
+      "mae": 449029.8378800063,
+      "r2": 0.4288478071585752
+    },
+    "random_forest_clean": {
+      "rmse": 542509.2067546749,
+      "mae": 349341.7388216956,
+      "r2": 0.6399441634684506
+    },
+    "n_samples": 11254,
+    "n_train": 8821,
+    "n_test": 2211
   },
-  "decision_tree": {
-    "rmse": 819273.4324855068,
-    "mae": 474375.6158892377,
-    "r2": 0.37293743215842345
+  "historical_artifact_reproduced": {
+    "n_after_isolation_forest": 11254,
+    "n_train": 8821,
+    "n_test": 2211,
+    "train": {
+      "model": "Current artifact - train",
+      "r2": 0.6176547546338598,
+      "mae": 400734.2842879575,
+      "rmse": 563307.9509471491,
+      "median_ae": 289320.09572847467,
+      "mape_percent": 329.5935040495605
+    },
+    "test": {
+      "model": "Current artifact - filtered test",
+      "r2": 0.5544816942993034,
+      "mae": 423485.1878789201,
+      "rmse": 603468.9950253152,
+      "median_ae": 295572.1286598211,
+      "mape_percent": 350.2976298187111
+    },
+    "ppm2_thresholds": [
+      100.82708821233412,
+      38569.23076923072
+    ]
   },
-  "random_forest": {
-    "rmse": 781896.6595134907,
-    "mae": 449029.8378800063,
-    "r2": 0.4288478071585752
+  "leakage_safe_random_forest_baseline": {
+    "train_validation": {
+      "model": "RF actuel sans fuite - train+validation",
+      "r2": 0.37114999723561815,
+      "mae": 545933.8104694089,
+      "rmse": 1614978.3022598685,
+      "median_ae": 394885.87815243634,
+      "mape_percent": 47.326327977547756
+    },
+    "test": {
+      "model": "RF actuel sans fuite - test",
+      "r2": 0.5211009408615903,
+      "mae": 565807.5497146343,
+      "rmse": 1023388.8539047207,
+      "median_ae": 411425.7611717769,
+      "mape_percent": 50.381583041778775
+    }
   },
-  "random_forest_clean": {
-    "rmse": 542509.2067546749,
-    "mae": 349341.7388216956,
-    "r2": 0.6399441634684506
+  "final_model": {
+    "description": "VotingRegressor: 75% ExtraTrees (220 arbres) sur log1p(Prix), 25% Ridge",
+    "train_validation": {
+      "model": "Modèle final - train+validation",
+      "r2": 0.503133643407172,
+      "mae": 280462.82185954467,
+      "rmse": 1435532.2507187745,
+      "median_ae": 136620.92597769154,
+      "mape_percent": 16.146957668432382
+    },
+    "test": {
+      "model": "Modèle final - test",
+      "r2": 0.6391866875519141,
+      "mae": 395558.84994783223,
+      "rmse": 888300.6237699636,
+      "median_ae": 204585.92904264037,
+      "mape_percent": 24.980422292493174
+    },
+    "improvement_vs_safe_baseline": {
+      "r2_absolute_gain_vs_safe_rf": 0.11808574669032379,
+      "mae_absolute_reduction_vs_safe_rf": 170248.69976680208,
+      "mae_percent_reduction_vs_safe_rf": 30.08950655618986,
+      "rmse_absolute_reduction_vs_safe_rf": 135088.23013475712,
+      "rmse_percent_reduction_vs_safe_rf": 13.200088081801024
+    },
+    "split": {
+      "strategy": "GroupShuffleSplit 70/15/15",
+      "random_state_test": 42,
+      "random_state_validation": 43,
+      "n_train": 8585,
+      "n_validation": 1838,
+      "n_test": 1844
+    },
+    "n_training_full_refit": 12267
   },
-  "n_samples": 11254,
-  "n_train": 8821,
-  "n_test": 2211
+  "data_audit": {
+    "raw_rows": 16858,
+    "exact_duplicates_removed": 1006,
+    "unlabeled_rows": 1169,
+    "unknown_type_rows": 1762,
+    "invalid_input_scope_rows": 23,
+    "explicit_rental_rows": 109,
+    "implausible_price_per_m2_rows": 472,
+    "modeling_rows": 12267,
+    "cities": 150,
+    "quartiers": 736,
+    "listing_groups": 12182,
+    "rows_in_repeated_groups": 158
+  }
 }
