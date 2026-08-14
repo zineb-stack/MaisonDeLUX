@@ -35,8 +35,8 @@
       "r2": 0.6176547546338598,
       "mae": 400734.2842879575,
       "rmse": 563307.9509471491,
-      "median_ae": 289320.09572847467,
-      "mape_percent": 329.5935040495605
+      "median_ae": 289320.0957284748,
+      "mape_percent": 329.5935040495606
     },
     "test": {
       "model": "Current artifact - filtered test",
@@ -57,7 +57,7 @@
       "r2": 0.37114999723561815,
       "mae": 545933.8104694089,
       "rmse": 1614978.3022598685,
-      "median_ae": 394885.87815243634,
+      "median_ae": 394885.8781524366,
       "mape_percent": 47.326327977547756
     },
     "test": {
@@ -76,21 +76,21 @@
       "r2": 0.503133643407172,
       "mae": 280462.82185954467,
       "rmse": 1435532.2507187745,
-      "median_ae": 136620.92597769154,
-      "mape_percent": 16.146957668432382
+      "median_ae": 136620.92597769713,
+      "mape_percent": 16.14695766843238
     },
     "test": {
       "model": "Modèle final - test",
       "r2": 0.6391866875519141,
-      "mae": 395558.84994783223,
+      "mae": 395558.8499478323,
       "rmse": 888300.6237699636,
-      "median_ae": 204585.92904264037,
+      "median_ae": 204585.92904264154,
       "mape_percent": 24.980422292493174
     },
     "improvement_vs_safe_baseline": {
       "r2_absolute_gain_vs_safe_rf": 0.11808574669032379,
-      "mae_absolute_reduction_vs_safe_rf": 170248.69976680208,
-      "mae_percent_reduction_vs_safe_rf": 30.08950655618986,
+      "mae_absolute_reduction_vs_safe_rf": 170248.69976680202,
+      "mae_percent_reduction_vs_safe_rf": 30.08950655618985,
       "rmse_absolute_reduction_vs_safe_rf": 135088.23013475712,
       "rmse_percent_reduction_vs_safe_rf": 13.200088081801024
     },
@@ -117,5 +117,47 @@
     "quartiers": 736,
     "listing_groups": 12182,
     "rows_in_repeated_groups": 158
+  },
+  "phase4_1_investigation": {
+    "target_test_r2": 0.9,
+    "target_achieved": false,
+    "fixed_test_manifest_sha256": "b0d93a4cf01845a0fead2233a53bcfeb2b12c1ae37b58bb3fa0b99954d9eecdc",
+    "fixed_test_rows": 1844,
+    "near_duplicate_quarantine": {
+      "train": 15,
+      "validation": 2
+    },
+    "best_deployable_candidate": {
+      "model": "CatBoost base log1p",
+      "r2": 0.6502594666165082,
+      "mae": 388812.68128918204,
+      "rmse": 874564.1578069619,
+      "median_ae": 195595.38024549634,
+      "mape_percent": 23.716264688310147
+    },
+    "best_offline_candidate": {
+      "model": "75% CatBoost rich log1p + 25% TF-IDF/Ridge",
+      "r2": 0.6560112539214382,
+      "mae": 386982.9142235443,
+      "rmse": 867342.8604215204,
+      "median_ae": 197475.29266704235,
+      "mape_percent": 24.361272056932375
+    },
+    "grouped_cross_validation": {
+      "model": "CatBoost rich log1p",
+      "folds": 3,
+      "mean_r2": 0.6090231141973219,
+      "std_r2": 0.034026590084723474,
+      "mean_mae": 381427.664589766,
+      "mean_rmse": 876911.1643317648
+    },
+    "production_decision": "Phase 4 pipeline preserved: deployable gain is too small for the added 100 MB CatBoost dependency; offline winner requires title/details absent from the API.",
+    "r2_90_bottleneck": {
+      "required_rmse": 467647.5793689094,
+      "required_sse_reduction_percent_from_best_offline": 70.929281512843,
+      "top_1_percent_sse_share_percent": 64.86698484460311,
+      "luxury_sse_share_percent": 71.30960599770518,
+      "conflicting_observable_rows": 277
+    }
   }
 }

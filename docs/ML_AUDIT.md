@@ -281,3 +281,122 @@ Le schéma de requête et le format principal de réponse restent inchangés.
 - surveiller les métriques par segment dans le temps ;
 - tester CatBoost seulement si l'amélioration justifie une nouvelle dépendance ;
 - ajouter des tests automatisés de schéma et de dérive de données.
+
+## Phase 4.1 — Investigation de la cible R² 0,90
+
+### Règle d'évaluation et test figé
+
+La Phase 4.1 réutilise exactement les **1 844 observations de test** de la Phase 4. Leur manifeste
+(index brut + groupe de listing) est enregistré dans `ml/artifacts/phase41_experiments.json` avec
+l'empreinte SHA-256 `b0d93a4cf01845a0fead2233a53bcfeb2b12c1ae37b58bb3fa0b99954d9eecdc`.
+
+Une signature conservatrice supplémentaire combine titre normalisé sans nombres, ville, quartier,
+surface, pièces et type. Elle a détecté 15 collisions côté train et 2 côté validation avec le test.
+Ces 17 lignes sont mises en quarantaine ; aucune ligne de test n'est supprimée ou déplacée.
+
+Les configurations, modèles spécialisés et poids de mélange ont été choisis uniquement sur le train
+et la validation. Le test a ensuite été ouvert une seule fois pour les représentants figés.
+
+### Signal supplémentaire extrait du texte
+
+Les champs `Titre`, `Localisation` et `Details` ont permis de détecter, sans inventer de valeur :
+
+- étage et RDC, ainsi qu'une surface mentionnée dans le titre ;
+- ascenseur, parking/garage, terrasse, balcon, jardin et piscine ;
+- meublé, neuf, rénové, à rénover et état de construction ;
+- sécurité, concierge, climatisation, cheminée, cuisine équipée et double vitrage ;
+- vue mer, vue montagne, proximité, titre foncier et signaux résidentiels/commerciaux ;
+- nombre d'équipements, nombre d'indices de luxe et score d'état ;
+- interactions ville-quartier, ville-type et quartier-type.
+
+Le texte TF-IDF est normalisé et privé de **tous les nombres et termes monétaires** afin qu'il ne
+puisse pas reconstruire le prix ou les variables numériques. Les attributs rares existent réellement,
+mais plusieurs sont trop peu fréquents pour fournir un signal robuste.
+
+### Qualité des prix
+
+La reproduction exacte de la cohorte confirme les règles Phase 4 : 1 169 prix non utilisables,
+109 locations explicites et 472 étiquettes hors de 1 000–150 000 MAD/m². Aucun exemple n'a été
+retiré en fonction de son erreur de prédiction. Les valeurs `Prix à consulter` et `Projet` restent
+non étiquetées ; les prix EUR utilisent le taux historique documenté de 10,8.
+
+Le champ prix ne contient pas de suffixe mensuel ou prix/m² permettant une correction automatique
+supplémentaire sûre. Les annonces suspectes restantes exigent l'URL, la devise, la nature de transaction
+et les données détaillées de la page source pour être corrigées sans conjecture.
+
+### Résultats sur le même test intact
+
+| Modèle / architecture | R² | MAE (MAD) | RMSE (MAD) | Médiane AE | MAPE |
+|---|---:|---:|---:|---:|---:|
+| Phase 4 Voting Ensemble | 0,6392 | 395 559 | 888 301 | 204 586 | 24,98% |
+| CatBoost base log1p | 0,6503 | 388 813 | 874 564 | 195 595 | 23,72% |
+| CatBoost riche log1p | 0,6393 | 389 893 | 888 204 | 196 110 | 23,48% |
+| Modèles par type | -0,0006 | 459 827 | 1 479 299 | 233 216 | 29,11% |
+| Modèles par grande ville | 0,4000 | 455 708 | 1 145 453 | 253 491 | 31,21% |
+| TF-IDF + structuré Ridge | 0,5772 | 474 702 | 961 554 | 271 914 | 34,53% |
+| **75% CatBoost riche log + 25% TF-IDF/Ridge** | **0,6560** | **386 983** | **867 343** | **197 475** | **24,36%** |
+
+Le mélange utilise le poids texte de 25% choisi sur validation. Le meilleur résultat légitime est donc
+**R² 0,6560** : aucun niveau supérieur ou égal à 0,70 n'est atteint.
+
+### Stabilité par validation croisée groupée
+
+CatBoost riche log1p obtient sur trois folds groupés : R² 0,652, 0,568 et 0,607.
+La moyenne est **0,609 ± 0,034**, avec MAE moyenne **381 428 MAD** et RMSE moyenne **876 911 MAD**.
+La dispersion ne soutient pas l'hypothèse qu'un score de 0,90 serait obtenu avec un fold favorable.
+
+### Idées rejetées
+
+- Les modèles par type dégradent fortement le résultat : 61 villas et 51 maisons dans train+validation
+  sont insuffisantes ; même appartement/studio ne gagnent pas globalement.
+- Les modèles dédiés Casablanca, Marrakech et Tanger donnent R² global 0,400.
+- Les attributs riches améliorent certaines erreurs typiques mais pas les grandes erreurs quadratiques.
+- TF-IDF seul n'est pas compétitif ; il apporte seulement un petit complément dans le mélange.
+- CatBoost brut est instable face aux très grandes étiquettes ; `log1p` généralise mieux.
+- XGBoost et LightGBM n'ont pas été ajoutés : CatBoost, mieux adapté aux catégories natives, n'apporte
+  déjà qu'un faible gain déployable ; deux dépendances supplémentaires ne sont pas justifiées.
+
+### Pourquoi R² 0,90 n'est pas réaliste avec les informations actuelles
+
+Sur le test, l'écart-type du prix est 1 478 831 MAD. R² 0,90 exige donc un RMSE maximal de
+**467 648 MAD**. Le meilleur mélange est à 867 343 MAD : il faudrait réduire sa somme des erreurs
+quadratiques de **70,93%**.
+
+Les 19 plus grandes erreurs (1% du test) représentent **64,87%** de cette somme, et les 55 biens
+supérieurs à 5 M MAD en représentent **71,31%**. Leur MAE est 3,09 M MAD. Le dataset ne décrit pas
+la surface du terrain, l'adresse/coordonnée exacte, l'étage de façon systématique, l'état réel,
+les prestations complètes ou la date de marché nécessaires pour séparer ces biens.
+
+De plus, 1 642 lignes appartiennent à 702 groupes ayant exactement les mêmes entrées API observables.
+Dans 95 groupes, soit 277 lignes, le prix maximal dépasse le minimum de plus de 1,5 fois. Un modèle
+recevant les champs actuels ne peut mathématiquement distinguer ces annonces contradictoires.
+
+La courbe d'apprentissage passe de 2 143 à 8 570 lignes de train : la MAE validation baisse de 539 755
+à environ 498 569 MAD, mais plafonne. Ajouter uniquement davantage de lignes avec le même schéma ne
+suffira donc pas.
+
+### Audit du scraper et plan d'acquisition
+
+Le scraper actuel lit seulement les cartes de résultat et conserve quatre chaînes. Il ne capture ni
+URL/identifiant, ni date, ni transaction, ni page détaillée, ni coordonnées, ni liste structurée des
+équipements. Il ne permet donc pas de dédupliquer durablement ou de contrôler la dérive temporelle.
+
+Objectif d'acquisition recommandé — sans garantie artificielle de R² 0,90 : atteindre **au moins
+50 000 ventes uniques et vérifiées**, soit environ **40 000 nouvelles annonces** après contrôles,
+dont 3 000–5 000 biens supérieurs à 5 M MAD et au moins 1 000 exemples pour villa, maison et duplex.
+Chaque grande ville devrait disposer de plusieurs milliers de ventes récentes.
+
+Le schéma futur doit ajouter : URL et ID source, date de collecte/publication, vente/location,
+devise et prix brut, coordonnées/adresse, surface habitable et terrain, étage/total d'étages,
+ancienneté, état, parking, ascenseur, terrasse, balcon, jardin, piscine, orientation, vues,
+ameublement, sécurité, titre foncier, frais et texte détaillé. Les contrôles de prix doivent être
+effectués à la collecte et les doublons reliés par ID/URL.
+
+### Décision de production
+
+La pipeline Phase 4 reste en production. CatBoost base est déployable avec les entrées actuelles mais
+son gain (R² +0,0111 et MAE -1,71%) est trop faible face à une dépendance d'environ 100 MB. Le meilleur
+mélange offline gagne R² +0,0168 et MAE -2,17%, mais dépend du titre/détails absents de l'API et du
+formulaire. Le frontend n'est donc pas modifié et `pipeline.pkl` n'est pas remplacé.
+
+**BEST LEGITIMATE RESULT: R² 0,6560. TARGET R² 0,90 NON ATTEINTE.**
