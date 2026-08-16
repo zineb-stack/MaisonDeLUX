@@ -1,6 +1,4 @@
-# MaisonDeLUX
-
-Application web d'estimation immobilière au Maroc, avec un frontend HTML et une API Flask utilisant les artefacts du modèle existant.
+# MaisonLux Maroc — Backend (Random Forest réel)
 
 ## Installation
 
@@ -10,26 +8,16 @@ pip install -r requirements.txt
 
 ## Lancer l'API
 
-Depuis la racine du projet :
-
 ```bash
-python backend/app.py
+python app.py
 ```
 
 L'API tourne sur `http://localhost:5000`.
 
-## Ouvrir le frontend
-
-Ouvrir `frontend/site.html` dans un navigateur. Les pages `login.html`, `signup.html` et `dashboard.html` restent liées entre elles par des chemins relatifs.
-
 ## Endpoints
 
-- `POST /api/predict` : retourne l'estimation d'un bien.
-- `GET /api/villes` : retourne la liste des villes reconnues par le modèle.
-- `GET /api/metrics` : retourne les métriques enregistrées du modèle.
-
-Exemple de requête pour `POST /api/predict` :
-
+### `POST /api/predict`
+Body JSON :
 ```json
 {
   "ville": "Casablanca",
@@ -41,9 +29,7 @@ Exemple de requête pour `POST /api/predict` :
   "salles_bain": 1
 }
 ```
-
-Exemple de réponse :
-
+Réponse :
 ```json
 {
   "prix_estime": 1006897,
@@ -55,31 +41,33 @@ Exemple de réponse :
 }
 ```
 
-## Organisation
+### `GET /api/villes`
+Liste des villes reconnues par le modèle (140 villes).
 
-- `backend/` : API Flask.
-- `frontend/` : pages HTML et répertoires d'assets.
-- `ml/notebooks/` : notebooks existants.
-- `ml/src/` : scripts liés à la collecte et au traitement des données.
-- `ml/artifacts/` : modèle, scaler, colonnes, tables d'encodage et métriques existants.
-- `data/raw/` : données sources.
-- `data/processed/` : emplacement réservé aux données transformées.
-- `tests/` : emplacement réservé aux tests.
-- `docs/` : documentation complémentaire.
+### `GET /api/metrics`
+Métriques du modèle (RMSE, MAE, R² pour chaque modèle testé).
 
-Les artefacts utilisés directement par l'API sont :
+## Réentraîner le modèle
 
-- `ml/artifacts/model.pkl` : modèle Random Forest entraîné.
-- `ml/artifacts/scaler.pkl` : scaler des colonnes numériques.
-- `ml/artifacts/quartier_freq.pkl` : fréquences des quartiers.
-- `ml/artifacts/feature_columns.pkl` : ordre des colonnes attendu par le modèle.
-- `ml/artifacts/mode_par_ville.pkl` : quartier le plus fréquent par ville.
-- `ml/artifacts/metrics.json` : métriques enregistrées des modèles.
-
-Le script de collecte peut être lancé depuis la racine avec :
-
+Si tu changes le CSV, relance :
 ```bash
-python ml/src/data.py
+python train_model.py
 ```
+Ça régénère `model.pkl`, `scaler.pkl`, `quartier_freq.pkl`, `feature_columns.pkl`, `mode_par_ville.pkl` et `metrics.json`.
 
-Il écrit le jeu de données dans `data/raw/maisonlux_maroc_complet.csv`.
+## Fichiers
+
+- `train_model.py` — pipeline complet (nettoyage + preprocessing + entraînement)
+- `app.py` — API Flask
+- `model.pkl` — Random Forest entraîné (données nettoyées)
+- `scaler.pkl` — StandardScaler pour les colonnes numériques
+- `quartier_freq.pkl` — fréquences des quartiers (encodage)
+- `feature_columns.pkl` — ordre exact des colonnes attendues par le modèle
+- `mode_par_ville.pkl` — quartier le plus fréquent par ville (imputation)
+- `metrics.json` — performances des modèles (RMSE, MAE, R²)
+- `maisonlux_maroc_complet.csv` — données brutes
+- `df_clean.csv` — données nettoyées (après pipeline)
+
+## Connecter le frontend
+
+Dans `site.html`, remplace la fonction `estimForm.addEventListener('submit', ...)` par un appel `fetch` vers `http://localhost:5000/api/predict`. Demande-moi et je te fais la modification directement.
