@@ -61,3 +61,10 @@ scrapy.log
 !data/sample/
 !data/sample/*.csv
 !data/sample/README.md
+
+# Node / Next.js
+node_modules/
+**/node_modules/
+
+.next/
+**/.next/
