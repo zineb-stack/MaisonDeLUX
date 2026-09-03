@@ -1,5 +1,10 @@
 # Audit Machine Learning — MaisonDeLUX
 
+> Historical audit record. The superseded experiment notebooks, standalone model
+> files, and Phase 4.1 manifest described below were removed from the active tree
+> during the repository cleanup after being copied to the external recovery
+> checkpoint. The backend contract and retained production artifacts are current.
+
 ## Résumé
 
 MaisonDeLUX estime le prix de vente d'un bien immobilier marocain. Il s'agit d'un problème de **régression** évalué avec R², MAE et RMSE.
@@ -68,7 +73,9 @@ Les prix bruts contiennent notamment :
 - des valeurs très hautes probablement saisies en centimes ou avec des zéros supplémentaires ;
 - des valeurs EUR converties avec le taux historique de 10,8 MAD.
 
-Le fichier brut n'a pas été modifié. Chaque règle de cohorte est explicitée dans `model_final.ipynb`.
+Le fichier brut n'a pas été modifié. Les règles de cohorte de cette expérience
+historique sont conservées dans le présent audit ; le notebook d'expérience a été
+retiré de l'arbre actif après sauvegarde externe.
 
 ## Cohorte de modélisation
 
@@ -247,7 +254,9 @@ Nouveaux artefacts :
 - `model_metadata.json` : contrat, villes, versions et hash ;
 - `metrics.json` : baseline historique, baseline sans fuite, métriques finales et split.
 
-Les anciens fichiers restent présents pour traçabilité, mais le backend charge désormais `pipeline.pkl`.
+Les anciens fichiers autonomes ont été retirés de l'arbre actif après sauvegarde
+externe. Le backend charge `pipeline.pkl` ; seuls cet artefact, `metrics.json` et
+`model_metadata.json` sont conservés dans `ml/artifacts/`.
 
 ## Changements backend
 
@@ -286,9 +295,10 @@ Le schéma de requête et le format principal de réponse restent inchangés.
 
 ### Règle d'évaluation et test figé
 
-La Phase 4.1 réutilise exactement les **1 844 observations de test** de la Phase 4. Leur manifeste
-(index brut + groupe de listing) est enregistré dans `ml/artifacts/phase41_experiments.json` avec
-l'empreinte SHA-256 `b0d93a4cf01845a0fead2233a53bcfeb2b12c1ae37b58bb3fa0b99954d9eecdc`.
+La Phase 4.1 réutilisait exactement les **1 844 observations de test** de la Phase 4. Son manifeste
+historique (index brut + groupe de listing) avait l'empreinte SHA-256
+`b0d93a4cf01845a0fead2233a53bcfeb2b12c1ae37b58bb3fa0b99954d9eecdc` ; il a été retiré de
+l'arbre actif avec les autres fichiers d'expérience après sauvegarde externe.
 
 Une signature conservatrice supplémentaire combine titre normalisé sans nombres, ville, quartier,
 surface, pièces et type. Elle a détecté 15 collisions côté train et 2 côté validation avec le test.

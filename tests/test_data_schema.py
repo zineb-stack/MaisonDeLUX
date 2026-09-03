@@ -1,6 +1,7 @@
 import unittest
 
 from ml.src.data_schema import (
+    MODEL_FORBIDDEN_COLUMNS,
     SCHEMA_V2_COLUMNS,
     build_v2_record,
     classify_transaction,
@@ -95,6 +96,21 @@ class StructuredParserTests(unittest.TestCase):
         self.assertIsNone(record["city"])
         self.assertEqual(record["transaction_type"], "UNKNOWN")
         self.assertIn(record["validation_status"], {"WARNING", "INVALID"})
+
+    def test_suspicious_sale_price_per_m2_is_audit_only_and_excluded(self):
+        record = build_v2_record({
+            "native_id": "outlier-1",
+            "transaction_type": "SALE",
+            "price_value": 100_000_000,
+            "currency": "MAD",
+            "city": "Casablanca",
+            "property_type": "appartement",
+            "surface_total_m2": 50,
+        })
+        self.assertFalse(record["model_eligible"])
+        self.assertIn("price_per_m2_outlier", record["model_exclusion_reasons"])
+        self.assertEqual(record["price_per_m2_audit"], 2_000_000)
+        self.assertIn("price_per_m2_audit", MODEL_FORBIDDEN_COLUMNS)
 
 
 if __name__ == "__main__":
