@@ -1,129 +1,58 @@
 # MaisonDeLUX
 
-Morocco real-estate estimation application with a Flask API, static frontend, reproducible data pipeline, geographic reference layer, and preserved production model artifacts.
+Prototype PFE d'estimation des prix d'annonces immobilières au Maroc. L'application Next.js conserve son parcours français/arabe et utilise le modèle Python final, sans prix simulé.
 
-## Setup
+## Architecture et fichiers de référence
 
-Python 3.12 is recommended.
+- Site : `app/`, `components/`, `config/`, `messages/` (Next.js à la racine).
+- API : `app/api/estimate/route.ts` relaie vers `backend/app.py` (Flask).
+- Dataset final : `data/processed/maisondelux_model_ready_v1.csv` (13 537 lignes, versionné).
+- Notebook exécuté : `ml/notebooks/maisondelux_notebook1.ipynb`.
+- Modèle : `models/maisondelux_price_model_v1.joblib`, prétraitement et inversion logarithmique inclus.
+- Transformer réutilisable : `ml/src/inference.py`.
+- Collecte/récupération : `ml/scraping/`, `ml/src/pipeline.py`, `ml/src/data_repair/`, `ml/src/scraping_v3/`.
 
-```bash
+## Installation et lancement
+
+Depuis la racine, avec Python 3.12 et Node.js :
+
+```sh
 python -m venv .venv
 .venv\Scripts\activate
 python -m pip install -r requirements.txt
+python -m backend.app
 ```
 
-The legacy Scrapy code recovered from interrupted work has separate dependencies, but its Mubawab adapter is **disabled by policy**. Do not run it without written data-extraction/reuse permission.
+Dans un second terminal :
 
-```bash
+```sh
+npm ci
+npm run dev
+```
+
+Ouvrir `http://localhost:3000/fr/estimation` ou `/ar/estimation`. Le navigateur appelle la route du site ; le serveur Next.js contacte Flask sur `http://127.0.0.1:5000`. Pour un autre hôte, définir `INFERENCE_API_URL` côté serveur. Pour vérifier la version optimisée : `npm run build`, puis `npm run start`.
+
+Tester une prédiction (PowerShell) :
+
+```powershell
+$body = @{surface_m2=120; bedrooms=3; bathrooms=2; region='Casablanca-Settat'; city='Casablanca'; neighborhood='Maârif'; property_type='appartement'} | ConvertTo-Json
+Invoke-RestMethod http://localhost:3000/api/estimate -Method Post -ContentType 'application/json; charset=utf-8' -Body ([System.Text.Encoding]::UTF8.GetBytes($body))
+```
+
+## Vérification et documentation
+
+```sh
+python -m pytest tests/test_inference.py -q -p no:cacheprovider
 python -m pip install -r requirements-scraping.txt
+python -m pytest -q -p no:cacheprovider --basetemp=outputs/pytest
+npm run build
 ```
 
-## Data pipeline quick start
+Certains tests historiques des exports nécessitent les données locales de récupération et les références géographiques, qui ne sont pas toutes versionnées. Les tests d'inférence utilisent uniquement le dataset final et le modèle versionnés. Aucun réentraînement n'est nécessaire pour lancer le site.
 
-The checked-in canonical outputs are ready to inspect. To rerun deterministic recovery, cleaning, validation, deduplication, enrichment, Parquet/CSV exports, and reports:
+- [Historique des données](docs/DATA_PIPELINE.md)
+- [Collecte et récupération](docs/SCRAPING_AND_RECOVERY.md)
+- [Modèle V1 et contrat API](docs/MODEL_V1.md)
+- [Inventaire final](reports/inventory/finalization_inventory.md)
 
-```bash
-python -m ml.src.pipeline
-```
-
-Refresh attributed geographic references only when needed:
-
-```bash
-python -m ml.src.geography.build_reference
-```
-
-Run the bounded source-policy/API pilots:
-
-```bash
-python -m ml.src.scraping.pilot
-```
-
-The single orchestration notebook is `ml/notebooks/maisondelux_data_pipeline.ipynb`. Its flags default to read-only inspection. Set a stage flag to `True` and run all cells; no cell copying is required.
-
-### Resume and safe interruption
-
-- Recovery always starts from the timestamped archive and Git-preserved historical data, so reruns are deterministic.
-- `data/interim/pipeline_state.json` records the last complete export.
-- Source checkpoints are append-only JSONL/CSV and deduplicate native IDs and canonical URLs on resume.
-- `Ctrl+C` may be used between stages. Existing raw evidence and checkpoints remain intact.
-- Excel files are created once after collection, never on every scraped row or page.
-
-Approximate local runtime is 30–60 seconds for geography refresh and CSV/Parquet processing, plus several minutes for the two large multi-sheet Excel workbooks. Network latency and source policies—not GPU compute—dominate scraping time. A GPU can help later model training, embeddings, or image models, but does not make HTTP requests faster.
-
-## Data products
-
-```text
-data/
-├── raw/          recovered canonical raw CSV/XLSX/Parquet
-├── interim/      typed recovery state and workbook summaries
-├── processed/    validated unique data and rejected audit rows
-├── sample/       tracked representative sample for fast ML smoke tests
-├── external/     attributed downloads and timestamped recovery archive
-└── geographic/   Morocco regions, provinces, cities and districts GeoJSON
-```
-
-Primary outputs:
-
-- `data/raw/maisondelux_raw.{csv,xlsx,parquet}`
-- `data/processed/maisondelux_clean.{csv,xlsx,parquet}`
-- `data/processed/maisondelux_rejected.csv`
-- `data/sample/maisondelux_model_sample.csv` (tracked, deterministic 750-row sample)
-- `data/geographic/morocco_{regions,cities,neighborhoods}.geojson`
-- `reports/data_quality/data_quality_report.{md,json}`
-- `reports/scraping/{source,geographic,historical}_coverage_report.md`
-
-Both workbooks contain `all_rows`, `valid_rows`, `rejected_rows`, `source_summary`, `city_summary`, `quality_summary`, and `scraping_errors` sheets.
-
-`price_per_m2` is an audit/analysis value and **must never be used as a feature when predicting `price_mad`**.
-
-## Data and ML handoff
-
-The full canonical data is generated locally and may be ignored because of size.
-The tracked sample has the same 32-column schema and covers all 9 represented
-regions and all 31 clean-data cities. Use it only for fast schema and pipeline
-checks; train and evaluate on the full Parquet file.
-
-- Authoritative collection/recovery guide: [`docs/SCRAPING_AND_DATA_PIPELINE.md`](docs/SCRAPING_AND_DATA_PIPELINE.md)
-- Alae's modeling handoff: [`docs/ALAE_MODEL_TRAINING_HANDOFF.md`](docs/ALAE_MODEL_TRAINING_HANDOFF.md)
-- Sample guide: [`data/sample/README.md`](data/sample/README.md)
-- Verified data orchestration notebook: [`ml/notebooks/maisondelux_data_pipeline.ipynb`](ml/notebooks/maisondelux_data_pipeline.ipynb)
-
-Alae should create the official training notebook at
-`ml/notebooks/maisondelux_model_training.ipynb`. No active training experiment is
-included in this handoff. The clean data has one source, no verified publication
-dates, no property-level coordinates, and sparse optional amenities; asking
-prices must not be described as completed transaction prices.
-
-## Source policy and limitations
-
-Recovered rows are Mubawab-derived; that provenance does not authorize new collection. The current live listing adapters for Mubawab, Agenz, MarocAnnonces, Avito, 360annonces, and Sarouty are disabled because their terms, robots rules, or access controls do not support unattended database collection. `data.gov.ma` is enabled only for open-data reference metadata and does not emit listing rows. Details and direct policy URLs are in `docs/DATA_COLLECTION.md` and `reports/scraping/source_coverage_report.md`.
-
-The corpus has no verified publication dates, so 2023–2026 historical coverage remains unknown rather than invented. Geographic features with no property observations remain explicit zero-coverage areas. A larger current multi-source dataset requires licensed feeds or written permission—Agenz's professional API/feed is the first partnership candidate.
-
-## Application
-
-Start the API from the repository root:
-
-```bash
-python backend/app.py
-```
-
-It serves `http://localhost:5000` with:
-
-- `POST /api/predict`
-- `GET /api/villes`
-- `GET /api/metrics`
-
-Open `frontend/site.html` for the static frontend. The self-contained legacy
-runtime model and its metrics/metadata remain in `ml/artifacts/` only because the
-current Flask application imports them. They are not the new modeling handoff and
-must not be overwritten until Alae's replacement passes inference-contract tests.
-
-## Verification
-
-```bash
-python -m pytest -q
-python -m ml.src.audit_repository
-```
-
-The row-level safety inventory is `reports/inventory/repository_inventory.csv`. Never use `git clean`, `git gc`, or destructive resets as a cleanup method for this repository; recovery archives contain interrupted work and unique raw evidence.
+Le prototype est principalement adapté aux appartements à vendre. Les prix sont indicatifs, non des expertises officielles. Les documents historiques sont conservés pour la traçabilité ; MODEL_V1 décrit le modèle servi actuellement.

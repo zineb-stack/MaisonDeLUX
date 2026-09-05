@@ -1,17 +1,19 @@
 export interface PredictPayload {
-  ville: string;
-  quartier?: string;
-  type_bien: string;
-  surface: number;
-  pieces?: number;
-  chambres?: number;
-  salles_bain?: number;
-  haut_standing?: number;
-  en_construction?: number;
+  surface_m2: number;
+  bedrooms?: number | null;
+  bathrooms?: number | null;
+  region: string;
+  city: string;
+  neighborhood?: string;
+  property_type: string;
+  parking?: string;
+  balcony?: string;
+  sea_view?: string;
+  furnished_status?: string;
 }
 
 export interface PredictResponse {
-  prix_estime?: number;
+  estimated_price_mad: number;
   prix_min?: number;
   prix_max?: number;
   prix_par_m2?: number;

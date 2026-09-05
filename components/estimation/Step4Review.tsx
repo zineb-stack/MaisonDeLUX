@@ -1,6 +1,8 @@
 'use client';
 
 import React from 'react';
+import locations from '@/models/locations_v1.json';
+import { ESTIMATOR_FIELDS } from '@/config/estimator.config';
 import { ClipboardCheck, Edit3 } from 'lucide-react';
 import { EstimatorFormData } from '@/types/estimator';
 import { formatNumber } from '@/lib/utils';
@@ -21,6 +23,7 @@ export function Step4Review({ formData, goToStep, locale, dict }: Step4ReviewPro
       stepNumber: 1,
       items: [
         { label: d.cityField, value: formData.ville },
+        { label: locale === 'ar' ? 'المنطقة' : 'Région', value: (locations as Record<string, string>)[formData.ville] },
         { label: d.districtField, value: formData.quartier || d.notSpecified },
       ],
     },
@@ -36,10 +39,9 @@ export function Step4Review({ formData, goToStep, locale, dict }: Step4ReviewPro
       stepNumber: 3,
       items: [
         { label: d.surfaceField, value: `${formatNumber(formData.surface, locale)} m²` },
-        { label: d.roomsField, value: formData.pieces ? formatNumber(formData.pieces, locale) : d.notSpecified },
         { label: d.bedroomsField, value: formData.chambres ? formatNumber(formData.chambres, locale) : d.notSpecified },
+        ...ESTIMATOR_FIELDS.filter(f => ['parking', 'balcony', 'sea_view', 'furnished_status'].includes(f.id)).map(f => ({ label: locale === 'ar' ? f.labelAr : f.labelFr, value: f.options?.find(o => o.value === formData[f.id])?.[locale === 'ar' ? 'labelAr' : 'labelFr'] })),
         { label: d.bathroomsField, value: formData.salles_bain ? formatNumber(formData.salles_bain, locale) : d.notSpecified },
-        { label: d.standingField, value: formData.haut_standing ? d.yes : d.no },
       ],
     },
   ];

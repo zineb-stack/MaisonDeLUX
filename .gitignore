@@ -26,6 +26,8 @@ data/raw/*.csv
 data/raw/*.xlsx
 data/raw/*.parquet
 data/raw/html_snapshots*/
+data/raw/v3/**
+data/checkpoints/**
 data/interim/**
 data/processed/*.csv
 data/processed/*.xlsx
@@ -68,3 +70,6 @@ node_modules/
 
 .next/
 **/.next/
+
+!data/processed/maisondelux_model_ready_v1.csv
+*.tsbuildinfo

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { EstimatorField } from '@/config/estimator.config';
-import { VERIFIED_CITIES } from '@/config/cities.config';
+import locations from '@/models/locations_v1.json';
 
 interface DynamicFieldProps {
   field: EstimatorField;
@@ -66,10 +66,8 @@ export function DynamicField({ field, value, onChange, locale, dict }: DynamicFi
           className="w-full px-4 py-3 bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 rounded-xl text-base font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-brand-blue cursor-pointer transition-colors"
         >
           {field.id === 'ville'
-            ? VERIFIED_CITIES.map((city) => (
-                <option key={city.id} value={city.nameFr}>
-                  {locale === 'ar' ? city.nameAr : city.nameFr} ({locale === 'ar' ? city.regionAr : city.regionFr})
-                </option>
+            ? Object.entries(locations).map(([city, region]) => (
+                <option key={city} value={city}>{city} ({region})</option>
               ))
             : field.options?.map((opt) => (
                 <option key={opt.value} value={opt.value} disabled={opt.disabled}>

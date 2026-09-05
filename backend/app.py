@@ -1,100 +1,88 @@
-"""
-API Flask — MaisonLux Maroc
-Sert la pipeline de régression finale entraînée sur les données immobilières auditées.
-"""
+"""MaisonDeLUX V1 inference. Run from the repository: python -m backend.app."""
 import json
+import math
 from pathlib import Path
-
-import pandas as pd
 import joblib
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+import numpy as np
+import pandas as pd
+from flask import Flask, jsonify, request
+from werkzeug.exceptions import HTTPException
 
+ROOT = Path(__file__).resolve().parents[1]
+model = joblib.load(ROOT / 'models/maisondelux_price_model_v1.joblib')
+metadata = json.loads((ROOT / 'models/maisondelux_price_model_v1_metadata.json').read_text(encoding='utf-8'))
+locations = json.loads((ROOT / 'models/locations_v1.json').read_text(encoding='utf-8'))
+FEATURES = metadata['features']
 app = Flask(__name__)
-CORS(app)
-app.url_map.strict_slashes = False
-
-ARTIFACTS_DIR = Path(__file__).resolve().parents[1] / "ml" / "artifacts"
-
-model = joblib.load(ARTIFACTS_DIR / "pipeline.pkl")
-
-with open(ARTIFACTS_DIR / "metrics.json", encoding="utf-8") as f:
-    metrics = json.load(f)
-
-with open(ARTIFACTS_DIR / "model_metadata.json", encoding="utf-8") as f:
-    model_metadata = json.load(f)
-
-villes_disponibles = model_metadata["cities"]
-TYPES_DISPONIBLES = {"appartement", "studio", "maison", "villa", "duplex"}
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024
 
 
-@app.route("/api/villes", methods=["GET"])
-def get_villes():
-    return jsonify({"villes": villes_disponibles})
+def validate(data):
+    if not isinstance(data, dict):
+        raise ValueError('Un objet JSON est requis.')
+    if set(data) - set(FEATURES):
+        raise ValueError('Le formulaire contient des champs non pris en charge.')
+    row = {}
+    for key in FEATURES[:3]:
+        value = data.get(key)
+        if key != 'surface_m2' and (value is None or value == ''):
+            row[key] = np.nan
+            continue
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise ValueError(f'{key} doit être numérique.')
+        if not math.isfinite(value) or (value <= 0 if key == 'surface_m2' else value < 0):
+            raise ValueError(f'{key} doit être fini et positif.')
+        if key != 'surface_m2' and value != int(value):
+            raise ValueError(f'{key} doit être entier.')
+        row[key] = value
+    for key in FEATURES[3:]:
+        value = data.get(key)
+        if value is not None and not isinstance(value, str):
+            raise ValueError(f'{key} doit être du texte.')
+        value = value.strip() if value else ''
+        if len(value) > 200:
+            raise ValueError(f'{key} est trop long.')
+        if key in ('city', 'region', 'property_type') and not value:
+            raise ValueError(f'{key} est requis.')
+        row[key] = value or ('unknown' if key in FEATURES[7:] else np.nan)
+    return pd.DataFrame([row], columns=FEATURES)
 
 
-@app.route("/api/metrics", methods=["GET"])
-def get_metrics():
-    # Alias conservé pour le dashboard historique, sans modifier le fichier de métriques scientifique.
-    payload = dict(metrics)
-    payload["random_forest_clean"] = dict(metrics["final_model"]["test"])
-    payload["n_samples"] = metrics["final_model"]["n_training_full_refit"]
-    return jsonify(payload)
+@app.errorhandler(HTTPException)
+def http_error(error):
+    return jsonify(error=error.description), error.code
 
 
-@app.route("/api/predict", methods=["POST"])
-def predict():
-    data = request.get_json(force=True)
-
-    ville = data.get("ville", "")
-    quartier = data.get("quartier", "").strip()
-    type_bien = data.get("type_bien", "appartement").lower()
-    surface = float(data.get("surface", 0))
-    pieces = float(data.get("pieces", 1))
-    chambres = float(data.get("chambres", 1))
-    salles_bain = float(data.get("salles_bain", 1))
-    haut_standing = int(data.get("haut_standing", 0))
-    en_construction = int(data.get("en_construction", 0))
-
-    if surface <= 0:
-        return jsonify({"error": "La surface doit être supérieure à 0."}), 400
-
-    if type_bien not in TYPES_DISPONIBLES:
-        type_bien = "appartement"
-
-    model_input = pd.DataFrame([{
-        "Surface_m2": surface,
-        "Pieces": pieces,
-        "Chambres": chambres,
-        "Salles_Bain": salles_bain,
-        "Is_Haut_Standing": haut_standing,
-        "En_Construction": en_construction,
-        "Type_Bien": type_bien,
-        "Ville": ville,
-        "Quartier": quartier if quartier else "Non renseigné",
-    }])
-
-    pred = model.predict(model_input)[0]
-    rmse = metrics["final_model"]["test"]["rmse"]
-
-    return jsonify({
-        "prix_estime": round(float(pred)),
-        "prix_min": round(max(0, float(pred) - rmse)),
-        "prix_max": round(float(pred) + rmse),
-        "prix_par_m2": round(float(pred) / surface),
-        "ville": ville,
-        "quartier": quartier if quartier else "Non renseigné",
-    })
+@app.post('/api/estimate')
+def estimate():
+    try:
+        frame = validate(request.get_json())
+    except ValueError as error:
+        return jsonify(error=str(error)), 400
+    try:
+        price = float(model.predict(frame)[0])
+        if not math.isfinite(price) or price <= 0:
+            raise ValueError('Invalid model output')
+    except Exception:
+        app.logger.exception('Inference failed')
+        return jsonify(error="Le service d'estimation est momentanément indisponible."), 503
+    return jsonify(estimated_price_mad=round(price), currency='MAD', model_version='v1')
 
 
-@app.route("/", methods=["GET"])
-def index():
-    return jsonify({
-        "status": "ok",
-        "message": "API MaisonLux Maroc — modèle final Phase 4",
-        "endpoints": ["/api/predict (POST)", "/api/villes (GET)", "/api/metrics (GET)"]
-    })
+@app.get('/api/villes')
+def cities():
+    return jsonify(villes=sorted(locations))
 
 
-if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+@app.get('/api/metrics')
+def metrics():
+    return jsonify(**metadata, currency='MAD', model_version='v1')
+
+
+@app.get('/')
+def health():
+    return jsonify(status='ok', model_version='v1')
+
+
+if __name__ == '__main__':
+    app.run(port=5000, debug=False)

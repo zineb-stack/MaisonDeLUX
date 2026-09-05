@@ -96,7 +96,7 @@ export function Step5Result({
   }
 
   // 3. Authentic Prediction State (From Real Backend API)
-  if (prediction && prediction.prix_estime !== undefined) {
+  if (prediction && prediction.estimated_price_mad !== undefined) {
     const hasRange = prediction.prix_min !== undefined && prediction.prix_max !== undefined;
     const hasPpm = prediction.prix_par_m2 !== undefined;
     const modelVersion = prediction.model_version;
@@ -115,7 +115,7 @@ export function Step5Result({
               {d.priceLabel}
             </span>
             <div className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-tight">
-              {formatCurrency(prediction.prix_estime, locale)}
+              {formatCurrency(prediction.estimated_price_mad, locale)}
             </div>
           </div>
 
@@ -169,6 +169,7 @@ export function Step5Result({
           <span className="font-mono">Devise: MAD</span>
         </div>
 
+        <p className="text-sm text-center text-slate-500">{locale === 'ar' ? 'تقدير إحصائي استرشادي، وليس تقييماً عقارياً رسمياً.' : 'Estimation statistique indicative, ne constituant pas une expertise immobilière officielle.'}</p>
         {/* Actions */}
         <div className="flex items-center justify-center gap-4 pt-2">
           <Button

@@ -1,3 +1,5 @@
+> Historical record: model serving is now documented in [MODEL_V1.md](MODEL_V1.md). Earlier runtime/artifact references below are superseded.
+
 # Alae model-training handoff
 
 ## Start here

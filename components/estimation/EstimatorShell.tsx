@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import locations from '@/models/locations_v1.json';
 import { ESTIMATOR_STEPS } from '@/config/estimator.config';
 import { EstimatorFormData, EstimationStatus } from '@/types/estimator';
 import { PredictResponse } from '@/lib/api/types';
@@ -31,13 +32,11 @@ export function EstimatorShell({ locale, dict }: EstimatorShellProps) {
   const [formData, setFormData] = useState<EstimatorFormData>({
     ville: 'Casablanca',
     quartier: '',
+    parking: 'unknown', balcony: 'unknown', sea_view: 'unknown', furnished_status: 'unknown',
     type_bien: 'appartement',
     surface: 90,
-    pieces: 3,
     chambres: 2,
     salles_bain: 1,
-    haut_standing: 0,
-    en_construction: 0,
   });
 
   // Prefill from URL search params (e.g. from Hero or Location Explorer)
@@ -90,15 +89,17 @@ export function EstimatorShell({ locale, dict }: EstimatorShellProps) {
     setPrediction(null);
 
     const res = await predictProperty({
-      ville: formData.ville,
-      quartier: formData.quartier || undefined,
-      type_bien: formData.type_bien || 'appartement',
-      surface: Number(formData.surface),
-      pieces: Number(formData.pieces) || undefined,
-      chambres: Number(formData.chambres) || undefined,
-      salles_bain: Number(formData.salles_bain) || undefined,
-      haut_standing: Number(formData.haut_standing) || 0,
-      en_construction: Number(formData.en_construction) || 0,
+      city: formData.ville,
+      region: (locations as Record<string, string>)[formData.ville],
+      neighborhood: formData.quartier || undefined,
+      property_type: formData.type_bien,
+      surface_m2: Number(formData.surface),
+      bedrooms: String(formData.chambres) === '' ? null : Number(formData.chambres),
+      bathrooms: String(formData.salles_bain) === '' ? null : Number(formData.salles_bain),
+      parking: formData.parking,
+      balcony: formData.balcony,
+      sea_view: formData.sea_view,
+      furnished_status: formData.furnished_status,
     });
 
     setIsSubmitting(false);

@@ -22,7 +22,7 @@ Robots allowance alone is not database-reuse permission. The client uses per-dom
 | [MarocAnnonces](https://www.marocannonces.com/) | disabled | [robots.txt](https://www.marocannonces.com/robots.txt) disallows generic crawlers; [terms](https://www.marocannonces.com/conditions-utilisation.html) prohibit reproduction/derivatives. |
 | [Avito.ma](https://www.avito.ma/) | disabled | Cloudflare managed challenges were encountered and no clear bulk-use permission was found. No bypass attempted. |
 | [360annonces](https://www.360annonces.com/) | disabled | [robots.txt](https://www.360annonces.com/robots.txt) allows public pages but [conditions](https://www.360annonces.com/conditions-generales) prohibit collection without authorization. |
-| [Sarouty](https://www.sarouty.ma/) | disabled | Public routes returned 403 and the terms route could not be verified. No bypass attempted. |
+| [Sarouty](https://www.sarouty.ma/) | disabled | Public listing routes are robots-allowed with a 10-second crawl delay, but the [terms](https://www.sarouty.ma/en/terms-and-conditions/) do not establish permission for bulk database reuse. Written permission or a licensed feed is required. |
 
 The recovered `ml/scraping/` package is retained for engineering evidence and offline parser tests. Its live Mubawab crawl must not be executed without a documented authorization reference.
 

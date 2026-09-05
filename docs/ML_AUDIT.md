@@ -1,3 +1,5 @@
+> Historical record: model serving is now documented in [MODEL_V1.md](MODEL_V1.md). Earlier runtime/artifact references below are superseded.
+
 # Audit Machine Learning — MaisonDeLUX
 
 > Historical audit record. The superseded experiment notebooks, standalone model

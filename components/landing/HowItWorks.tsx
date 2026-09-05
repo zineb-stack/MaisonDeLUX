@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Layers, Cpu, TrendingUp, CheckCircle2, ShieldCheck, Sparkles, Building2, BarChart3 } from 'lucide-react';
+import { Layers, Cpu, TrendingUp, ShieldCheck, Building2, BarChart3, CheckCircle2 } from 'lucide-react';
 import { isRTL } from '@/lib/i18n/config';
 
 interface HowItWorksProps {
@@ -16,65 +16,171 @@ export function HowItWorks({ locale, dict }: HowItWorksProps) {
 
   const steps = [
     {
-      num: dict.howItWorks.step1Number,
+      num: '01',
       title: dict.howItWorks.step1Title,
       desc: dict.howItWorks.step1Desc,
-      icon: <Layers className="w-5 h-5 text-brand-blue dark:text-blue-400" />,
+      icon: <Layers className="w-4.5 h-4.5" />,
       detail: locale === 'ar' ? 'المعايير الهندسية' : 'Paramètres intrinsèques',
       badge: locale === 'ar' ? 'المرحلة الأولى' : 'Étape Initiale',
     },
     {
-      num: dict.howItWorks.step2Number,
+      num: '02',
       title: dict.howItWorks.step2Title,
       desc: dict.howItWorks.step2Desc,
-      icon: <Cpu className="w-5 h-5 text-brand-blue dark:text-blue-400" />,
+      icon: <Cpu className="w-4.5 h-4.5" />,
       detail: locale === 'ar' ? 'المطابقة الإحصائية' : 'Rapprochement statistique',
       badge: locale === 'ar' ? 'المرحلة التحليلية' : 'Calibrage ML',
     },
     {
-      num: dict.howItWorks.step3Number,
+      num: '03',
       title: dict.howItWorks.step3Title,
       desc: dict.howItWorks.step3Desc,
-      icon: <TrendingUp className="w-5 h-5 text-brand-blue dark:text-blue-400" />,
+      icon: <TrendingUp className="w-4.5 h-4.5" />,
       detail: locale === 'ar' ? 'القيمة والمجال' : 'Valeur & Dispersion',
       badge: locale === 'ar' ? 'مخرجات النموذج' : 'Restitution Finale',
     },
   ];
 
-  const containerRef = useRef<HTMLDivElement>(null);
+  // Compact Laboratory Visual State Component
+  const renderVisualState = (stepIdx: number) => {
+    if (stepIdx === 0) {
+      return (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between text-xs text-slate-500">
+            <span className="font-semibold flex items-center gap-1.5 text-slate-900 dark:text-white">
+              <Building2 className="w-4 h-4 text-brand-blue dark:text-blue-400" />
+              {locale === 'ar' ? 'مخطط البيانات الأساسية' : 'Schéma des Attributs'}
+            </span>
+            <span className="font-mono text-[11px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              {locale === 'ar' ? 'معتمد' : 'Vérifié'}
+            </span>
+          </div>
 
-  // IntersectionObserver to sync sticky visual with scrolling story steps
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="p-2 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5">
+              <span className="text-[10px] text-slate-400 block mb-0.5 uppercase tracking-wider">Typologie</span>
+              <span className="font-bold text-slate-900 dark:text-white">Appartement</span>
+            </div>
+            <div className="p-2 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5">
+              <span className="text-[10px] text-slate-400 block mb-0.5 uppercase tracking-wider">Surface brute</span>
+              <span className="font-bold text-slate-900 dark:text-white">95 m² habitables</span>
+            </div>
+            <div className="p-2 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5">
+              <span className="text-[10px] text-slate-400 block mb-0.5 uppercase tracking-wider">Distribution</span>
+              <span className="font-bold text-slate-900 dark:text-white">3 ch. · 2 sdb</span>
+            </div>
+            <div className="p-2 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5">
+              <span className="text-[10px] text-slate-400 block mb-0.5 uppercase tracking-wider">Finition</span>
+              <span className="font-bold text-slate-900 dark:text-white">Haut standing</span>
+            </div>
+          </div>
 
-    const stepElements = container.querySelectorAll('[data-step-index]');
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const index = Number(entry.target.getAttribute('data-step-index'));
-            if (!isNaN(index)) {
-              setActiveStep(index);
-            }
-          }
-        });
-      },
-      {
-        rootMargin: '-30% 0px -40% 0px',
-        threshold: 0.2,
-      }
+          <div className="p-2.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/60 dark:border-blue-900/40 text-[11px] text-blue-800 dark:text-blue-300 leading-relaxed">
+            {locale === 'ar'
+              ? 'استبعاد التخمينات الذاتية وتحديد الهيكل الهندسي الدقيق للعقار.'
+              : 'Structuration univoque des vecteurs caractéristiques sans bruit descriptif.'}
+          </div>
+        </div>
+      );
+    }
+
+    if (stepIdx === 1) {
+      return (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between text-xs text-slate-500">
+            <span className="font-semibold flex items-center gap-1.5 text-slate-900 dark:text-white">
+              <Cpu className="w-4 h-4 text-brand-blue dark:text-blue-400" />
+              {locale === 'ar' ? 'محرك المطابقة الإحصائية' : 'Moteur de Régression'}
+            </span>
+            <span className="font-mono text-[11px] text-brand-blue dark:text-blue-400 font-bold">
+              Calibré
+            </span>
+          </div>
+
+          <div className="space-y-2">
+            <div className="p-2 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5">
+              <div className="flex justify-between text-[11px] mb-1">
+                <span className="text-slate-600 dark:text-slate-300 font-medium">
+                  {locale === 'ar' ? 'تنقية البيانات من القيم الشاذة' : 'Filtrage outliers & doublons'}
+                </span>
+                <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">100%</span>
+              </div>
+              <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                <div className="h-full bg-emerald-500 rounded-full w-full" />
+              </div>
+            </div>
+
+            <div className="p-2 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5">
+              <div className="flex justify-between text-[11px] mb-1">
+                <span className="text-slate-600 dark:text-slate-300 font-medium">
+                  {locale === 'ar' ? 'تطابق السلسلة الزمنية للمدينة' : 'Corpus géographique audité'}
+                </span>
+                <span className="font-mono text-brand-blue dark:text-blue-400 font-bold">Actif</span>
+              </div>
+              <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                <div className="h-full bg-brand-blue rounded-full w-[92%]" />
+              </div>
+            </div>
+          </div>
+
+          <div className="p-2.5 rounded-xl bg-slate-100/80 dark:bg-slate-800/50 border border-slate-200/60 dark:border-white/5 text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+            {locale === 'ar'
+              ? 'المطابقة الحصرية مع العقارات المماثلة الفعلية في نفس المدينة والحي.'
+              : 'Aucune extrapolation hors territoire. Calibrage strict sur le corpus audité.'}
+          </div>
+        </div>
+      );
+    }
+
+    // stepIdx === 2
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center justify-between text-xs text-slate-500">
+          <span className="font-semibold flex items-center gap-1.5 text-slate-900 dark:text-white">
+            <BarChart3 className="w-4 h-4 text-brand-blue dark:text-blue-400" />
+            {locale === 'ar' ? 'المؤشرات والفاصل الرياضي' : 'Restitution d\'Encadrement'}
+          </span>
+          <span className="font-mono text-[11px] text-blue-600 dark:text-blue-400 font-bold">
+            MAD
+          </span>
+        </div>
+
+        <div className="p-3 rounded-2xl bg-gradient-to-br from-brand-blue/10 via-transparent to-blue-500/5 border border-brand-blue/20 text-center space-y-1">
+          <span className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 block font-semibold">
+            {locale === 'ar' ? 'القيمة الإرشادية المحسوبة' : 'Estimation Indicative du Modèle'}
+          </span>
+          <div className="text-2xl font-black text-brand-navy dark:text-white">
+            1 250 000 <span className="text-sm font-bold text-brand-blue">MAD</span>
+          </div>
+          <div className="pt-1.5 border-t border-slate-200/60 dark:border-white/10 flex justify-around text-[11px]">
+            <div>
+              <span className="text-[9px] text-slate-400 block uppercase">Fourchette basse</span>
+              <span className="font-bold text-slate-700 dark:text-slate-200">1 190 000 MAD</span>
+            </div>
+            <div>
+              <span className="text-[9px] text-slate-400 block uppercase">Fourchette haute</span>
+              <span className="font-bold text-slate-700 dark:text-slate-200">1 320 000 MAD</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-2 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-900/40 text-[11px] text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+          <span className="leading-relaxed">
+            {locale === 'ar'
+              ? 'إظهار النتائج بناءً على عقد البيانات الرسمي فقط.'
+              : 'Encadrement basé uniquement sur les retours réels du moteur d\'inférence.'}
+          </span>
+        </div>
+      </div>
     );
-
-    stepElements.forEach((el) => observer.observe(el));
-
-    return () => observer.disconnect();
-  }, []);
+  };
 
   return (
     <section
       id="demarche"
-      className="min-h-auto lg:min-h-[100svh] py-16 sm:py-20 lg:py-12 scroll-mt-24 lg:scroll-mt-28 bg-slate-50/70 dark:bg-brand-navy-deep/80 transition-colors border-t border-slate-200/80 dark:border-white/5 relative overflow-hidden flex flex-col justify-center"
+      className="py-12 lg:py-16 scroll-mt-24 lg:scroll-mt-28 bg-slate-50/70 dark:bg-brand-navy-deep/80 transition-colors border-t border-slate-200/80 dark:border-white/5 relative overflow-hidden"
     >
       {/* Background Architectural Grid Accents */}
       <div className="absolute inset-0 pointer-events-none opacity-30 dark:opacity-15">
@@ -82,286 +188,179 @@ export function HowItWorks({ locale, dict }: HowItWorksProps) {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
-        {/* Section Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-8% 0px' }}
-          transition={{ duration: 0.5 }}
-          className="max-w-3xl mb-8 lg:mb-10"
-        >
-          <span className="text-xs font-bold uppercase tracking-wider text-brand-blue dark:text-blue-400 mb-2 block">
+        {/* Section Heading */}
+        <div className="max-w-3xl mb-8 lg:mb-10">
+          <span className="text-xs font-bold uppercase tracking-wider text-brand-blue dark:text-blue-400 mb-1.5 block">
             {dict.howItWorks.badge}
           </span>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white leading-[1.15]">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white leading-tight">
             {dict.howItWorks.title}
           </h2>
-          <p className="mt-2.5 text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
+          <p className="mt-2 text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl">
             {dict.howItWorks.subtitle}
           </p>
-        </motion.div>
+        </div>
 
-        {/* Sticky Storytelling Layout on Desktop */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
-          {/* Left / Right Sticky Visual Stage Canvas */}
-          <div className="lg:col-span-5 hidden lg:block sticky top-28 sm:top-32">
-            <div className="relative rounded-2xl p-6 backdrop-blur-xl bg-white/85 dark:bg-[#0c1322]/85 border border-slate-200/90 dark:border-white/10 shadow-[0_12px_40px_-8px_rgba(15,23,42,0.08)] dark:shadow-[0_16px_48px_-8px_rgba(0,0,0,0.6)] overflow-hidden min-h-[380px] lg:min-h-[400px] flex flex-col justify-between">
-              {/* Background Ambient Glow */}
-              <div className="absolute -top-24 -right-24 w-60 h-60 bg-blue-500/10 dark:bg-blue-500/20 rounded-full blur-3xl pointer-events-none" />
+        {/* 2-Column Desktop Viewport Composition (approx 0.8fr : 1.2fr) */}
+        <div className="grid grid-cols-1 lg:grid-cols-[0.8fr_1.2fr] gap-8 lg:gap-14 items-center">
+          {/* LEFT: Existing Laboratoire d'Évaluation Visual Panel */}
+          <div className="order-2 lg:order-1">
+            <div className="relative rounded-2xl p-5 sm:p-6 backdrop-blur-xl bg-white/90 dark:bg-[#0c1322]/90 border border-slate-200/90 dark:border-white/10 shadow-lg shadow-slate-900/5 dark:shadow-black/50 overflow-hidden flex flex-col justify-between min-h-[340px] lg:min-h-[360px]">
+              {/* Ambient Glow */}
+              <div className="absolute -top-20 -right-20 w-48 h-48 bg-blue-500/10 dark:bg-blue-500/20 rounded-full blur-3xl pointer-events-none" />
 
-              {/* Header of Sticky Visual */}
-              <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 pb-4">
-                <div className="flex items-center gap-2.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-brand-blue animate-pulse" />
-                  <span className="text-xs font-mono font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    {locale === 'ar' ? 'مختبر التقييم الرقمي' : 'Laboratoire d\'Évaluation'}
+              {/* Header with Interactive Tabs */}
+              <div>
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 pb-3 mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-brand-blue animate-pulse" />
+                    <span className="text-xs font-mono font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                      {locale === 'ar' ? 'مختبر التقييم الرقمي' : 'Laboratoire d\'Évaluation'}
+                    </span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-blue/10 text-brand-blue dark:text-blue-300 border border-brand-blue/20">
+                    {steps[activeStep].badge}
                   </span>
                 </div>
-                <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-brand-blue/10 text-brand-blue dark:text-blue-300 border border-brand-blue/20">
-                  {steps[activeStep].badge}
-                </span>
-              </div>
 
-              {/* Dynamic Interactive Visuals for Each Step */}
-              <div className="my-auto py-6">
-                <AnimatePresence mode="wait">
-                  {activeStep === 0 && (
-                    <motion.div
-                      key="step-0-visual"
-                      initial={{ opacity: 0, scale: 0.96, y: 8 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.96, y: -8 }}
-                      transition={{ duration: 0.35 }}
-                      className="space-y-4"
-                    >
-                      <div className="flex items-center justify-between text-xs text-slate-500">
-                        <span className="font-medium flex items-center gap-1.5 text-slate-900 dark:text-white font-semibold">
-                          <Building2 className="w-4 h-4 text-brand-blue" />
-                          {locale === 'ar' ? 'مخطط البيانات الأساسية' : 'Schéma des Attributs'}
-                        </span>
-                        <span className="font-mono text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
-                          ✓ Vérifié
-                        </span>
-                      </div>
-
-                      {/* Schematic Grid of Parameters */}
-                      <div className="grid grid-cols-2 gap-2.5 text-xs">
-                        <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5">
-                          <span className="text-[10px] text-slate-400 block mb-0.5">Typologie</span>
-                          <span className="font-bold text-slate-900 dark:text-white">Appartement</span>
-                        </div>
-                        <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5">
-                          <span className="text-[10px] text-slate-400 block mb-0.5">Surface brute</span>
-                          <span className="font-bold text-slate-900 dark:text-white">95 m² habitables</span>
-                        </div>
-                        <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5">
-                          <span className="text-[10px] text-slate-400 block mb-0.5">Distribution</span>
-                          <span className="font-bold text-slate-900 dark:text-white">3 ch. · 2 sdb</span>
-                        </div>
-                        <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5">
-                          <span className="text-[10px] text-slate-400 block mb-0.5">Finition</span>
-                          <span className="font-bold text-slate-900 dark:text-white">Haut standing</span>
-                        </div>
-                      </div>
-
-                      <div className="p-3 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/60 dark:border-blue-900/40 text-[11px] text-blue-800 dark:text-blue-300">
-                        {locale === 'ar'
-                          ? 'استبعاد التخمينات الذاتية وتحديد الهيكل الهندسي الدقيق للعقار.'
-                          : 'Structuration univoque des vecteurs caractéristiques sans bruit descriptif.'}
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {activeStep === 1 && (
-                    <motion.div
-                      key="step-1-visual"
-                      initial={{ opacity: 0, scale: 0.96, y: 8 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.96, y: -8 }}
-                      transition={{ duration: 0.35 }}
-                      className="space-y-4"
-                    >
-                      <div className="flex items-center justify-between text-xs text-slate-500">
-                        <span className="font-medium flex items-center gap-1.5 text-slate-900 dark:text-white font-semibold">
-                          <Cpu className="w-4 h-4 text-brand-blue" />
-                          {locale === 'ar' ? 'محرك المطابقة الإحصائية' : 'Moteur de Régression Sectorielle'}
-                        </span>
-                        <span className="font-mono text-[11px] text-brand-blue dark:text-blue-400 font-bold">
-                          Processing...
-                        </span>
-                      </div>
-
-                      {/* Neural / Regression Match Bars */}
-                      <div className="space-y-2.5">
-                        <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5">
-                          <div className="flex justify-between text-[11px] mb-1.5">
-                            <span className="text-slate-600 dark:text-slate-300 font-medium">
-                              {locale === 'ar' ? 'تنقية البيانات من القيم الشاذة' : 'Filtrage outliers & doublons'}
-                            </span>
-                            <span className="font-mono text-emerald-600 font-bold">100%</span>
-                          </div>
-                          <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                            <motion.div
-                              initial={{ width: 0 }}
-                              animate={{ width: '100%' }}
-                              transition={{ duration: 0.6 }}
-                              className="h-full bg-emerald-500 rounded-full"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5">
-                          <div className="flex justify-between text-[11px] mb-1.5">
-                            <span className="text-slate-600 dark:text-slate-300 font-medium">
-                              {locale === 'ar' ? 'تطابق السلسلة الزمنية للمدينة' : 'Corpus géographique audité'}
-                            </span>
-                            <span className="font-mono text-brand-blue dark:text-blue-400 font-bold">Actif</span>
-                          </div>
-                          <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                            <motion.div
-                              initial={{ width: 0 }}
-                              animate={{ width: '92%' }}
-                              transition={{ duration: 0.6, delay: 0.1 }}
-                              className="h-full bg-brand-blue rounded-full"
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="p-3 rounded-xl bg-slate-100/80 dark:bg-slate-800/50 border border-slate-200/60 dark:border-white/5 text-[11px] text-slate-600 dark:text-slate-300">
-                        {locale === 'ar'
-                          ? 'المطابقة الحصرية مع العقارات المماثلة الفعلية في نفس المدينة والحي.'
-                          : 'Aucune extrapolation hors territoire. Calibrage strict sur le corpus audité.'}
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {activeStep === 2 && (
-                    <motion.div
-                      key="step-2-visual"
-                      initial={{ opacity: 0, scale: 0.96, y: 8 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.96, y: -8 }}
-                      transition={{ duration: 0.35 }}
-                      className="space-y-4"
-                    >
-                      <div className="flex items-center justify-between text-xs text-slate-500">
-                        <span className="font-medium flex items-center gap-1.5 text-slate-900 dark:text-white font-semibold">
-                          <BarChart3 className="w-4 h-4 text-brand-blue" />
-                          {locale === 'ar' ? 'المؤشرات والفاصل الرياضي' : 'Restitution d\'Encadrement'}
-                        </span>
-                        <span className="font-mono text-[11px] text-blue-600 dark:text-blue-400 font-bold">
-                          MAD
-                        </span>
-                      </div>
-
-                      {/* Valuation Gauge Card */}
-                      <div className="p-4 rounded-2xl bg-gradient-to-br from-brand-blue/10 via-transparent to-blue-500/5 border border-brand-blue/20 text-center space-y-2">
-                        <span className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 block font-semibold">
-                          {locale === 'ar' ? 'القيمة الإرشادية المحسوبة' : 'Estimation Indicative du Modèle'}
-                        </span>
-                        <div className="text-2xl sm:text-3xl font-black text-brand-navy dark:text-white">
-                          1 250 000 <span className="text-base font-bold text-brand-blue">MAD</span>
-                        </div>
-                        <div className="pt-2 border-t border-slate-200/60 dark:border-white/10 flex justify-around text-xs">
-                          <div>
-                            <span className="text-[10px] text-slate-400 block">Fourchette basse</span>
-                            <span className="font-bold text-slate-700 dark:text-slate-200">1 190 000 MAD</span>
-                          </div>
-                          <div>
-                            <span className="text-[10px] text-slate-400 block">Fourchette haute</span>
-                            <span className="font-bold text-slate-700 dark:text-slate-200">1 320 000 MAD</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="p-3 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-900/40 text-[11px] text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
-                        <ShieldCheck className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
-                        <span>
-                          {locale === 'ar'
-                            ? 'إظهار النتائج بناءً على عقد البيانات الرسمي فقط.'
-                            : 'Encadrement basé uniquement sur les retours réels du moteur d\'inférence.'}
-                        </span>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              {/* Visual Step Progress Dots */}
-              <div className="border-t border-slate-100 dark:border-white/5 pt-4 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  {steps.map((_, i) => (
+                {/* Tab selector pills */}
+                <div className="flex items-center gap-1.5 p-1 bg-slate-100/70 dark:bg-white/5 rounded-xl mb-3">
+                  {steps.map((st, i) => (
                     <button
                       key={i}
                       type="button"
                       onClick={() => setActiveStep(i)}
-                      className={`h-2 rounded-full transition-all duration-300 ${
+                      className={`flex-1 py-1 px-2 rounded-lg text-[11px] font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 ${
                         activeStep === i
-                          ? 'w-7 bg-brand-blue shadow-sm'
-                          : 'w-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300'
+                          ? 'bg-white dark:bg-brand-navy text-brand-blue dark:text-blue-300 shadow-xs border border-slate-200/60 dark:border-white/10'
+                          : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'
                       }`}
-                      aria-label={`Étape ${i + 1}`}
+                    >
+                      <span className="font-mono text-[10px]">{st.num}</span>
+                      <span className="truncate">
+                        {st.num === '01'
+                          ? (locale === 'ar' ? 'البيانات' : 'Attributs')
+                          : st.num === '02'
+                          ? (locale === 'ar' ? 'النمذجة' : 'Calibrage')
+                          : (locale === 'ar' ? 'النتيجة' : 'Résultat')}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Dynamic State Preview */}
+              <div className="my-auto py-2">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={`visual-${activeStep}`}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.25, ease: 'easeOut' }}
+                  >
+                    {renderVisualState(activeStep)}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              {/* Bottom Telemetry Bar */}
+              <div className="border-t border-slate-100 dark:border-white/5 pt-3 flex items-center justify-between text-xs text-slate-400">
+                <span className="text-[11px] font-mono">
+                  {locale === 'ar' ? `المرحلة 0${activeStep + 1} من 03` : `Étape 0${activeStep + 1} / 03`}
+                </span>
+                <div className="flex items-center gap-1">
+                  {steps.map((_, i) => (
+                    <span
+                      key={i}
+                      className={`h-1.5 rounded-full transition-all duration-300 ${
+                        activeStep === i
+                          ? 'w-5 bg-brand-blue'
+                          : 'w-1.5 bg-slate-200 dark:bg-slate-700'
+                      }`}
                     />
                   ))}
                 </div>
-                <span className="text-xs font-mono font-medium text-slate-400">
-                  0{activeStep + 1} / 03
-                </span>
               </div>
             </div>
           </div>
 
-          {/* Scrolling Steps Narrative Column */}
-          <div ref={containerRef} className="lg:col-span-7 space-y-6 sm:space-y-8">
+          {/* RIGHT: Compact Vertical Timeline (All 3 steps visible, NO cards) */}
+          <div className="order-1 lg:order-2 flex flex-col justify-center">
             {steps.map((step, idx) => {
-              const isActive = activeStep === idx;
+              const isCurrent = activeStep === idx;
+              const isStep1 = idx === 0;
+
               return (
-                <div
-                  key={step.num}
-                  data-step-index={idx}
-                  className={`relative p-6 sm:p-7 rounded-2xl transition-all duration-300 ${
-                    isActive
-                      ? 'bg-white dark:bg-brand-navy-surface border-2 border-brand-blue/50 dark:border-blue-400/50 shadow-xl shadow-slate-900/5 dark:shadow-black/40 scale-[1.01]'
-                      : 'bg-white/70 dark:bg-brand-navy-surface/50 border border-slate-200/80 dark:border-white/5 shadow-xs opacity-75 hover:opacity-100'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <span
-                      className={`text-2xl sm:text-3xl font-black tracking-wider transition-colors ${
-                        isActive ? 'text-brand-blue dark:text-blue-400' : 'text-slate-300 dark:text-slate-700'
-                      }`}
-                    >
-                      {step.num}
-                    </span>
-                    <div
-                      className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
-                        isActive
-                          ? 'bg-brand-blue/10 dark:bg-blue-500/20 text-brand-blue dark:text-blue-400 border border-brand-blue/20'
-                          : 'bg-slate-50 dark:bg-slate-800 text-slate-400'
-                      }`}
-                    >
-                      {step.icon}
+                <div key={step.num} className="group">
+                  {/* Step Row (Unboxed, pure typography & timeline rhythm) */}
+                  <div
+                    onClick={() => setActiveStep(idx)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setActiveStep(idx);
+                      }
+                    }}
+                    className="cursor-pointer text-start transition-colors duration-150 focus:outline-none"
+                  >
+                    {/* Header Row: Number + Title + Subtle Blue Accent (on Step 01) */}
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <span
+                        className={`font-mono font-black text-2xl sm:text-3xl shrink-0 w-8 sm:w-9 transition-colors ${
+                          isStep1 || isCurrent
+                            ? 'text-brand-blue dark:text-blue-400'
+                            : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'
+                        }`}
+                      >
+                        {step.num}
+                      </span>
+
+                      <h3
+                        className={`transition-colors ${
+                          isStep1
+                            ? 'text-base sm:text-lg font-extrabold text-slate-900 dark:text-white'
+                            : isCurrent
+                            ? 'text-base sm:text-lg font-bold text-slate-900 dark:text-white'
+                            : 'text-base sm:text-lg font-bold text-slate-800 dark:text-slate-200 group-hover:text-brand-blue dark:group-hover:text-blue-300'
+                        }`}
+                      >
+                        {step.title}
+                      </h3>
+
+                      {isStep1 && (
+                        <span className="ms-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-50 dark:bg-blue-950/60 text-brand-blue dark:text-blue-300 border border-blue-200/80 dark:border-blue-800/40">
+                          {step.badge}
+                        </span>
+                      )}
                     </div>
+
+                    {/* Description: Indented under title */}
+                    <p
+                      className={`ps-[44px] sm:ps-[52px] mt-1 text-xs sm:text-sm leading-relaxed max-w-xl transition-colors ${
+                        isStep1 || isCurrent
+                          ? 'text-slate-700 dark:text-slate-300 font-medium'
+                          : 'text-slate-500 dark:text-slate-400'
+                      }`}
+                    >
+                      {step.desc}
+                    </p>
                   </div>
 
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-brand-blue dark:text-blue-400 block mb-1">
-                    {step.detail}
-                  </span>
-                  <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mb-2.5">
-                    {step.title}
-                  </h3>
-                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                    {step.desc}
-                  </p>
-
-                  {/* Inline visual fallback for mobile only */}
-                  <div className="lg:hidden mt-6 pt-4 border-t border-slate-100 dark:border-white/5">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                      <Sparkles className="w-3.5 h-3.5 text-brand-blue" />
-                      {step.badge}
-                    </span>
-                  </div>
+                  {/* Vertical Connector Line between steps */}
+                  {idx < steps.length - 1 && (
+                    <div className="ps-[15px] sm:ps-[17px] my-2.5 sm:my-3">
+                      <div
+                        className={`w-[2px] h-7 sm:h-8 rounded-full ${
+                          isStep1
+                            ? 'bg-gradient-to-b from-brand-blue/60 via-slate-300 to-slate-200 dark:from-blue-400/60 dark:via-white/20 dark:to-white/10'
+                            : 'bg-slate-200 dark:bg-white/15'
+                        }`}
+                      />
+                    </div>
+                  )}
                 </div>
               );
             })}

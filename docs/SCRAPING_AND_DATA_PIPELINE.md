@@ -53,7 +53,7 @@ signals, never invitations to evade controls.
 | MarocAnnonces | disabled | Robots and terms do not permit the proposed generic collection/reuse. |
 | Avito.ma | disabled | A Cloudflare challenge was encountered and no clear bulk-use permission was found; no bypass was attempted. |
 | 360annonces | disabled | Terms prohibit collection without authorization. |
-| Sarouty | disabled | Listing routes returned HTTP 403 and terms could not be verified; no bypass was attempted. |
+| Sarouty | disabled | Public listing routes are robots-allowed with a 10-second crawl delay, but public terms do not establish permission for bulk database reuse; written permission or a licensed feed is required. |
 
 The dated evidence and direct policy URLs are recorded in
 `reports/scraping/source_policy_audit.json` and

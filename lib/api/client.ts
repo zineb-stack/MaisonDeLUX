@@ -11,11 +11,12 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 export async function predictProperty(
   payload: PredictPayload
 ): Promise<{ data?: PredictResponse; error?: string; isOffline?: boolean }> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8-second safety timeout
+    timeoutId = setTimeout(() => controller.abort(), 8000); // 8-second safety timeout
 
-    const res = await fetch(`${API_BASE_URL}/api/predict`, {
+    const res = await fetch('/api/estimate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -34,6 +35,7 @@ export async function predictProperty(
     }
 
     const data: PredictResponse = await res.json();
+    if (!Number.isFinite(data.estimated_price_mad) || data.estimated_price_mad <= 0) return { error: 'Réponse invalide du service.' };
     return { data };
   } catch (err: any) {
     // Connection refused, network error, or timeout
@@ -41,6 +43,8 @@ export async function predictProperty(
       isOffline: true,
       error: 'Le moteur d\'estimation est actuellement en cours de connexion.',
     };
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
 

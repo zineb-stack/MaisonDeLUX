@@ -42,7 +42,7 @@ POLICIES = [
     SourcePolicy("marocannonces.com", "https://www.marocannonces.com/", "https://www.marocannonces.com/robots.txt", "https://www.marocannonces.com/conditions-utilisation.html", False, "none", "robots.txt disallows all generic crawling and terms prohibit reuse"),
     SourcePolicy("avito.ma", "https://www.avito.ma/", "https://www.avito.ma/robots.txt", None, False, "none", "Cloudflare access challenge encountered and no clear automated-use permission; no bypass"),
     SourcePolicy("360annonces.com", "https://www.360annonces.com/", "https://www.360annonces.com/robots.txt", "https://www.360annonces.com/conditions-generales", False, "none", "Terms prohibit collection without authorization"),
-    SourcePolicy("sarouty.ma", "https://www.sarouty.ma/", "https://www.sarouty.ma/robots.txt", None, False, "none", "Listing requests returned HTTP 403 and terms could not be verified; no bypass"),
+    SourcePolicy("sarouty.ma", "https://www.sarouty.ma/", "https://www.sarouty.ma/robots.txt", "https://www.sarouty.ma/en/terms-and-conditions/", False, "none", "Robots permits public listing routes with a 10-second crawl delay, but bulk database reuse permission is not established; written permission or a licensed feed is required"),
 ]
 
 

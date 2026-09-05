@@ -1,0 +1,37 @@
+{
+  "model_name": "XGBoost",
+  "feature_set": "EXTENDED",
+  "target_mode": "LOG",
+  "target": "price_mad",
+  "features": [
+    "surface_m2",
+    "bedrooms",
+    "bathrooms",
+    "region",
+    "city",
+    "neighborhood",
+    "property_type",
+    "parking",
+    "balcony",
+    "sea_view",
+    "furnished_status"
+  ],
+  "rare_thresholds": {
+    "neighborhood": 10,
+    "city": 20
+  },
+  "train_rows": 10852,
+  "test_rows": 2685,
+  "split_seed": 18,
+  "test_metrics": {
+    "MAE": 427233.7566166201,
+    "RMSE": 1024909.6698916669,
+    "R2": 0.6104168048580725,
+    "MedianAE": 201411.5625,
+    "MdAPE_pct": 14.12495,
+    "Within_10_pct": 37.243947858473,
+    "Within_20_pct": 63.24022346368715,
+    "Within_30_pct": 79.06890130353817
+  },
+  "notes": "price_mad est un prix d'annonce et non nécessairement le prix final de transaction."
+}

@@ -3,11 +3,8 @@ export interface EstimatorFormData {
   quartier: string;
   type_bien: string;
   surface: number;
-  pieces: number;
   chambres: number;
   salles_bain: number;
-  haut_standing: number;
-  en_construction: number;
   [key: string]: any;
 }
 
