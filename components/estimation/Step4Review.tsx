@@ -24,7 +24,7 @@ export function Step4Review({ formData, goToStep, locale, dict }: Step4ReviewPro
       items: [
         { label: d.cityField, value: formData.ville },
         { label: locale === 'ar' ? 'المنطقة' : 'Région', value: (locations as Record<string, string>)[formData.ville] },
-        { label: d.districtField, value: formData.quartier || d.notSpecified },
+        { label: d.districtField, value: formData.quartier || (locale === 'ar' ? 'آخر / حي غير مدرج' : 'Autre / quartier non répertorié') },
       ],
     },
     {

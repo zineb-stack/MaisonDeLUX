@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { compatibleNeighborhood, neighborhoodForApi } from '@/lib/estimation/locations';
 import locations from '@/models/locations_v1.json';
 import { ESTIMATOR_STEPS } from '@/config/estimator.config';
 import { EstimatorFormData, EstimationStatus } from '@/types/estimator';
@@ -46,7 +47,8 @@ export function EstimatorShell({ locale, dict }: EstimatorShellProps) {
 
     setFormData((prev) => ({
       ...prev,
-      ville: villeParam || prev.ville,
+      ville: villeParam && villeParam in locations ? villeParam : prev.ville,
+      quartier: compatibleNeighborhood(villeParam && villeParam in locations ? villeParam : prev.ville, prev.quartier),
       surface: surfaceParam ? Number(surfaceParam) : prev.surface,
     }));
   }, [searchParams]);
@@ -58,7 +60,10 @@ export function EstimatorShell({ locale, dict }: EstimatorShellProps) {
   const [prediction, setPrediction] = useState<PredictResponse | null>(null);
 
   const updateForm = (key: string, value: any) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
+    setFormData((prev) => ({ ...prev, [key]: value,
+      quartier: key === 'ville' ? compatibleNeighborhood(value, prev.quartier)
+        : key === 'quartier' ? compatibleNeighborhood(prev.ville, value) : prev.quartier,
+    }));
   };
 
   const handleNext = () => {
@@ -91,7 +96,7 @@ export function EstimatorShell({ locale, dict }: EstimatorShellProps) {
     const res = await predictProperty({
       city: formData.ville,
       region: (locations as Record<string, string>)[formData.ville],
-      neighborhood: formData.quartier || undefined,
+      neighborhood: neighborhoodForApi(formData.ville, formData.quartier),
       property_type: formData.type_bien,
       surface_m2: Number(formData.surface),
       bedrooms: String(formData.chambres) === '' ? null : Number(formData.chambres),

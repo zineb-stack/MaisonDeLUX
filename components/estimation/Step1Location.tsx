@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { NeighborhoodSelect } from './NeighborhoodSelect';
 import { MapPin } from 'lucide-react';
 import { DynamicField } from './DynamicField';
 import { ESTIMATOR_FIELDS } from '@/config/estimator.config';
@@ -14,7 +15,7 @@ interface Step1LocationProps {
 }
 
 export function Step1Location({ formData, updateForm, locale, dict }: Step1LocationProps) {
-  const stepFields = ESTIMATOR_FIELDS.filter((f) => f.step === 1);
+  const stepFields = ESTIMATOR_FIELDS.filter((f) => f.step === 1 && f.id !== 'quartier');
 
   return (
     <div className="space-y-6">
@@ -38,6 +39,8 @@ export function Step1Location({ formData, updateForm, locale, dict }: Step1Locat
             dict={dict}
           />
         ))}
+        <NeighborhoodSelect key={formData.ville} city={formData.ville} value={formData.quartier}
+          onChange={value => updateForm('quartier', value)} locale={locale} />
       </div>
     </div>
   );
